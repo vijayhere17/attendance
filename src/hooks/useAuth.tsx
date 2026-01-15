@@ -17,7 +17,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string, role?: 'admin' | 'employee') => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
 }
@@ -82,7 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'employee' = 'employee') => {
+  const signUp = async (email: string, password: string, fullName: string) => {
+    // SECURITY: All new signups are employees by default
+    // Admin accounts must be promoted by existing admins
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -90,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: `${window.location.origin}/`,
         data: {
           full_name: fullName,
-          role: role,
+          role: 'employee', // Always employee - admin promotion requires existing admin
         },
       },
     });

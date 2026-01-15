@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { MapPin, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -20,7 +20,6 @@ const signupSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long'),
-  role: z.enum(['admin', 'employee']),
 });
 
 export default function Auth() {
@@ -30,7 +29,7 @@ export default function Auth() {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupName, setSignupName] = useState('');
-  const [signupRole, setSignupRole] = useState<'admin' | 'employee'>('employee');
+  
   
   const { signIn, signUp, user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
@@ -75,8 +74,7 @@ export default function Auth() {
     const validation = signupSchema.safeParse({ 
       email: signupEmail, 
       password: signupPassword, 
-      fullName: signupName,
-      role: signupRole 
+      fullName: signupName
     });
     if (!validation.success) {
       toast.error(validation.error.errors[0].message);
@@ -84,7 +82,7 @@ export default function Auth() {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(signupEmail, signupPassword, signupName, signupRole);
+    const { error } = await signUp(signupEmail, signupPassword, signupName);
     setIsLoading(false);
 
     if (error) {
@@ -198,18 +196,6 @@ export default function Auth() {
                       onChange={(e) => setSignupPassword(e.target.value)}
                       required
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-role">Role</Label>
-                    <Select value={signupRole} onValueChange={(v) => setSignupRole(v as 'admin' | 'employee')}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="employee">Employee</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? (
