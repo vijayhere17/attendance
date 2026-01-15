@@ -69,16 +69,34 @@ export default function CheckInOut() {
         },
       });
 
+      // Handle FunctionsHttpError (non-2xx responses)
       if (error) {
-        console.error('Edge function error:', error);
-        throw new Error(error.message || 'Failed to process attendance');
+        // Try to get error details from context
+        let errorMessage = 'Failed to process attendance';
+        let distance: number | undefined;
+        
+        try {
+          const errorBody = await error.context?.json?.();
+          if (errorBody?.error) {
+            errorMessage = errorBody.error;
+            distance = errorBody.distance;
+          }
+        } catch {
+          errorMessage = error.message || errorMessage;
+        }
+        
+        toast.error(errorMessage, {
+          description: distance ? `You are ${distance}m from the office` : undefined,
+        });
+        return;
       }
 
-      if (data.error) {
+      // Handle success response with application-level error
+      if (data?.error) {
         toast.error(data.error, {
           description: data.distance ? `You are ${data.distance}m from the office` : undefined,
         });
-      } else {
+      } else if (data?.success) {
         toast.success(data.message);
         fetchTodayAttendance();
       }
