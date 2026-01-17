@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Loader2, Mail, Lock, User, ArrowRight, Shield, Clock, CheckCircle2 } from 'lucide-react';
+import { MapPin, Loader2, Mail, Lock, User, ArrowRight, Sparkles, Zap, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { AnimatedBackground } from '@/components/AnimatedBackground';
+import { Progress } from '@/components/ui/progress';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -28,7 +30,8 @@ export default function Auth() {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupName, setSignupName] = useState('');
-  
+  const [activeTab, setActiveTab] = useState('login');
+
   const { signIn, signUp, user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -42,9 +45,19 @@ export default function Auth() {
     }
   }, [user, isAdmin, loading, navigate]);
 
+  const getPasswordStrength = (password: string) => {
+    if (password.length === 0) return 0;
+    if (password.length < 6) return 25;
+    if (password.length < 8) return 50;
+    if (password.length < 12) return 75;
+    return 100;
+  };
+
+  const passwordStrength = getPasswordStrength(signupPassword);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const validation = loginSchema.safeParse({ email: loginEmail, password: loginPassword });
     if (!validation.success) {
       toast.error(validation.error.errors[0].message);
@@ -62,16 +75,16 @@ export default function Auth() {
         toast.error(error.message);
       }
     } else {
-      toast.success('Welcome back!');
+      toast.success('Welcome back! 🎉');
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const validation = signupSchema.safeParse({ 
-      email: signupEmail, 
-      password: signupPassword, 
+
+    const validation = signupSchema.safeParse({
+      email: signupEmail,
+      password: signupPassword,
       fullName: signupName
     });
     if (!validation.success) {
@@ -90,14 +103,14 @@ export default function Auth() {
         toast.error(error.message);
       }
     } else {
-      toast.success('Account created successfully!');
+      toast.success('Account created successfully! 🎊');
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background gradient-mesh">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-background gradient-mesh-animated">
+        <div className="text-center animate-slide-up">
           <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" />
           <p className="text-muted-foreground mt-4">Loading...</p>
         </div>
@@ -106,212 +119,249 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex bg-background gradient-mesh">
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-sidebar relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-indigo-600/20" />
-        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
-              <MapPin className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="font-bold text-xl text-sidebar-foreground">GeoAttend</h1>
-              <p className="text-xs text-sidebar-foreground/60">Enterprise Attendance</p>
-            </div>
-          </div>
+    <div className="min-h-screen relative overflow-hidden bg-background">
+      <AnimatedBackground />
 
-          {/* Hero Content */}
-          <div className="max-w-lg">
-            <h2 className="text-4xl xl:text-5xl font-bold text-sidebar-foreground leading-tight">
-              Smart Attendance.<br />
-              <span className="text-primary">Simplified.</span>
-            </h2>
-            <p className="text-lg text-sidebar-foreground/70 mt-6 leading-relaxed">
-              Enterprise-grade geolocation attendance management. Track, verify, and manage employee attendance with precision and ease.
-            </p>
-            
-            {/* Features */}
-            <div className="mt-10 space-y-4">
-              {[
-                { icon: MapPin, text: 'GPS-verified check-ins within geofence' },
-                { icon: Clock, text: 'Real-time attendance tracking' },
-                { icon: Shield, text: 'Enterprise security & compliance' },
-                { icon: CheckCircle2, text: 'Automated reports & analytics' },
-              ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3 text-sidebar-foreground/80">
-                  <div className="w-8 h-8 rounded-lg bg-sidebar-accent flex items-center justify-center">
-                    <feature.icon className="w-4 h-4 text-primary" />
-                  </div>
-                  <span>{feature.text}</span>
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4 md:p-8">
+        <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
+
+          {/* Left Side - Branding with asymmetric design */}
+          <div className="hidden lg:block space-y-8 animate-slide-up">
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center shadow-coral rotate-6 hover:rotate-0 transition-transform duration-300">
+                <MapPin className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="font-bold text-2xl text-foreground">GeoAttend</h1>
+                <p className="text-sm text-muted-foreground">Smart Attendance Tracking</p>
+              </div>
+            </div>
+
+            {/* Hero Content */}
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-5xl font-bold text-foreground leading-tight">
+                  Track attendance
+                  <br />
+                  <span className="text-primary">the smart way</span>
+                  <span className="text-accent">.</span>
+                </h2>
+                <p className="text-lg text-muted-foreground mt-4 leading-relaxed max-w-md">
+                  GPS-verified check-ins, real-time tracking, and powerful analytics.
+                  Everything you need to manage attendance effortlessly.
+                </p>
+              </div>
+
+              {/* Feature Cards */}
+              <div className="grid grid-cols-2 gap-4 mt-8">
+                <div className="card-tilted p-4 rounded-2xl bg-card border-2 border-primary/20 shadow-coral">
+                  <Sparkles className="w-6 h-6 text-primary mb-2" />
+                  <p className="font-semibold text-sm">GPS Verified</p>
+                  <p className="text-xs text-muted-foreground mt-1">Accurate location tracking</p>
                 </div>
-              ))}
+                <div className="card-skewed p-4 rounded-2xl bg-card border-2 border-accent/20 shadow-teal">
+                  <Zap className="w-6 h-6 text-accent mb-2" />
+                  <p className="font-semibold text-sm">Real-time</p>
+                  <p className="text-xs text-muted-foreground mt-1">Instant updates</p>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-6 pt-4">
+                <div>
+                  <p className="text-3xl font-bold text-primary">99.9%</p>
+                  <p className="text-xs text-muted-foreground">Accuracy</p>
+                </div>
+                <div className="h-12 w-px bg-border" />
+                <div>
+                  <p className="text-3xl font-bold text-accent">24/7</p>
+                  <p className="text-xs text-muted-foreground">Available</p>
+                </div>
+                <div className="h-12 w-px bg-border" />
+                <div>
+                  <p className="text-3xl font-bold text-success">Secure</p>
+                  <p className="text-xs text-muted-foreground">Enterprise-grade</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Footer */}
-          <p className="text-sm text-sidebar-foreground/40">
-            © 2024 GeoAttend. Enterprise Attendance Solutions.
-          </p>
-        </div>
-
-        {/* Decorative Elements */}
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
-      </div>
-
-      {/* Right Side - Auth Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-          <div className="text-center mb-8 lg:hidden">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary mb-4 shadow-glow">
-              <MapPin className="w-8 h-8 text-white" />
+          {/* Right Side - Auth Form with unique design */}
+          <div className="w-full max-w-md mx-auto lg:mx-0 animate-scale-in">
+            {/* Mobile Logo */}
+            <div className="text-center mb-8 lg:hidden">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary mb-4 shadow-coral rotate-3">
+                <MapPin className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-foreground">GeoAttend</h1>
+              <p className="text-muted-foreground mt-1">Smart Attendance Tracking</p>
             </div>
-            <h1 className="text-2xl font-bold text-foreground">GeoAttend</h1>
-            <p className="text-muted-foreground mt-1">Enterprise Attendance</p>
+
+            <Card className="shadow-large border-2 border-border/50 overflow-hidden backdrop-blur-sm bg-card/95">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-primary opacity-10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
+
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <CardHeader className="pb-4 relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Heart className="w-5 h-5 text-primary animate-pulse-soft" />
+                    <CardTitle className="text-2xl">Welcome!</CardTitle>
+                  </div>
+                  <CardDescription>
+                    {activeTab === 'login' ? 'Sign in to continue your journey' : 'Create your account to get started'}
+                  </CardDescription>
+                  <TabsList className="grid w-full grid-cols-2 mt-4 bg-muted/50">
+                    <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                      Sign In
+                    </TabsTrigger>
+                    <TabsTrigger value="signup" className="data-[state=active]:bg-accent data-[state=active]:text-white">
+                      Sign Up
+                    </TabsTrigger>
+                  </TabsList>
+                </CardHeader>
+
+                <CardContent>
+                  <TabsContent value="login" className="mt-0 space-y-4 animate-slide-up">
+                    <form onSubmit={handleLogin} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="login-email" className="text-sm font-medium">Email Address</Label>
+                        <div className="relative group">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                          <Input
+                            id="login-email"
+                            type="email"
+                            placeholder="you@company.com"
+                            value={loginEmail}
+                            onChange={(e) => setLoginEmail(e.target.value)}
+                            className="pl-10 h-12 border-2 focus:border-primary transition-all"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
+                        <div className="relative group">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                          <Input
+                            id="login-password"
+                            type="password"
+                            placeholder="••••••••"
+                            value={loginPassword}
+                            onChange={(e) => setLoginPassword(e.target.value)}
+                            className="pl-10 h-12 border-2 focus:border-primary transition-all"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full h-12 text-base gap-2 shadow-coral ripple gradient-primary hover:shadow-lg"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Signing in...
+                          </>
+                        ) : (
+                          <>
+                            Sign In
+                            <ArrowRight className="w-5 h-5" />
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
+
+                  <TabsContent value="signup" className="mt-0 space-y-4 animate-slide-up">
+                    <form onSubmit={handleSignup} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-name" className="text-sm font-medium">Full Name</Label>
+                        <div className="relative group">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
+                          <Input
+                            id="signup-name"
+                            type="text"
+                            placeholder="John Doe"
+                            value={signupName}
+                            onChange={(e) => setSignupName(e.target.value)}
+                            className="pl-10 h-12 border-2 focus:border-accent transition-all"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-email" className="text-sm font-medium">Email Address</Label>
+                        <div className="relative group">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
+                          <Input
+                            id="signup-email"
+                            type="email"
+                            placeholder="you@company.com"
+                            value={signupEmail}
+                            onChange={(e) => setSignupEmail(e.target.value)}
+                            className="pl-10 h-12 border-2 focus:border-accent transition-all"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
+                        <div className="relative group">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
+                          <Input
+                            id="signup-password"
+                            type="password"
+                            placeholder="••••••••"
+                            value={signupPassword}
+                            onChange={(e) => setSignupPassword(e.target.value)}
+                            className="pl-10 h-12 border-2 focus:border-accent transition-all"
+                            required
+                          />
+                        </div>
+                        {signupPassword && (
+                          <div className="space-y-1 animate-slide-up">
+                            <Progress value={passwordStrength} className="h-2" />
+                            <p className="text-xs text-muted-foreground">
+                              Password strength: {
+                                passwordStrength < 50 ? 'Weak' :
+                                  passwordStrength < 75 ? 'Good' :
+                                    passwordStrength < 100 ? 'Strong' : 'Very Strong'
+                              }
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full h-12 text-base gap-2 shadow-teal ripple gradient-accent hover:shadow-lg"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Creating account...
+                          </>
+                        ) : (
+                          <>
+                            Create Account
+                            <ArrowRight className="w-5 h-5" />
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </CardContent>
+              </Tabs>
+            </Card>
+
+            <p className="text-center text-xs text-muted-foreground mt-6">
+              By continuing, you agree to our{' '}
+              <span className="text-primary hover:underline cursor-pointer">Terms</span>
+              {' '}and{' '}
+              <span className="text-primary hover:underline cursor-pointer">Privacy Policy</span>
+            </p>
           </div>
-
-          <Card className="shadow-medium border-border/50">
-            <Tabs defaultValue="login" className="w-full">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-2xl text-center">Welcome</CardTitle>
-                <CardDescription className="text-center">
-                  Sign in to your account or create a new one
-                </CardDescription>
-                <TabsList className="grid w-full grid-cols-2 mt-4">
-                  <TabsTrigger value="login">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                </TabsList>
-              </CardHeader>
-
-              <CardContent>
-                <TabsContent value="login" className="mt-0 space-y-4">
-                  <form onSubmit={handleLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email">Email Address</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="login-email"
-                          type="email"
-                          placeholder="you@company.com"
-                          value={loginEmail}
-                          onChange={(e) => setLoginEmail(e.target.value)}
-                          className="pl-10 h-12"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="login-password">Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="login-password"
-                          type="password"
-                          placeholder="••••••••"
-                          value={loginPassword}
-                          onChange={(e) => setLoginPassword(e.target.value)}
-                          className="pl-10 h-12"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 text-base gap-2 shadow-lg shadow-primary/20" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Signing in...
-                        </>
-                      ) : (
-                        <>
-                          Sign In
-                          <ArrowRight className="w-5 h-5" />
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
-
-                <TabsContent value="signup" className="mt-0 space-y-4">
-                  <form onSubmit={handleSignup} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-name">Full Name</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="signup-name"
-                          type="text"
-                          placeholder="John Doe"
-                          value={signupName}
-                          onChange={(e) => setSignupName(e.target.value)}
-                          className="pl-10 h-12"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email Address</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="signup-email"
-                          type="email"
-                          placeholder="you@company.com"
-                          value={signupEmail}
-                          onChange={(e) => setSignupEmail(e.target.value)}
-                          className="pl-10 h-12"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="signup-password"
-                          type="password"
-                          placeholder="••••••••"
-                          value={signupPassword}
-                          onChange={(e) => setSignupPassword(e.target.value)}
-                          className="pl-10 h-12"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 text-base gap-2 shadow-lg shadow-primary/20" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Creating account...
-                        </>
-                      ) : (
-                        <>
-                          Create Account
-                          <ArrowRight className="w-5 h-5" />
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
-              </CardContent>
-            </Tabs>
-          </Card>
-
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            By continuing, you agree to our Terms of Service and Privacy Policy.
-          </p>
         </div>
       </div>
     </div>

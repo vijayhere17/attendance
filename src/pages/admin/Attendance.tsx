@@ -5,15 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StatusBadge } from '@/components/StatusBadge';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Download, 
-  Loader2, 
-  Calendar, 
+import {
+  Download,
+  Loader2,
+  Calendar,
   Filter,
   FileSpreadsheet,
   Clock,
   MapPin,
-  Search
+  Search,
+  ArrowUpDown,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -26,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { AnimatedBackground } from '@/components/AnimatedBackground';
 
 export default function AdminAttendance() {
   const [records, setRecords] = useState<any[]>([]);
@@ -58,9 +63,9 @@ export default function AdminAttendance() {
       if (error) throw error;
       const blob = new Blob([data], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); 
-      a.href = url; 
-      a.download = `attendance-${format(new Date(), 'yyyy-MM-dd')}.csv`; 
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `attendance-${format(new Date(), 'yyyy-MM-dd')}.csv`;
       a.click();
       toast.success('Export successful!', { description: 'Your CSV file has been downloaded.' });
     } catch (error) {
@@ -72,7 +77,7 @@ export default function AdminAttendance() {
 
   const filteredRecords = records.filter(r => {
     const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       r.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
@@ -91,29 +96,81 @@ export default function AdminAttendance() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="relative z-0">
+        <AnimatedBackground />
+      </div>
+
+      <div className="space-y-8 relative z-10">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-slide-up">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Attendance Records</h1>
-            <p className="text-muted-foreground mt-1">View, filter, and export attendance data</p>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Attendance Records</h1>
+            <p className="text-muted-foreground mt-1 text-lg">View, filter, and export attendance data</p>
           </div>
-          <Button 
-            onClick={handleExport} 
+          <Button
+            onClick={handleExport}
             disabled={exporting}
-            className="gap-2 shadow-lg shadow-primary/20"
+            className="gap-2 shadow-glow-accent hover:scale-105 transition-transform"
           >
             {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />}
             Export to CSV
           </Button>
         </div>
 
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-scale-in">
+          <Card className="shadow-soft border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Records</p>
+                <p className="text-2xl font-bold mt-1">{stats.total}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <FileSpreadsheet className="w-5 h-5 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-soft border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Present</p>
+                <p className="text-2xl font-bold mt-1 text-success">{stats.present}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-success" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-soft border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Late</p>
+                <p className="text-2xl font-bold mt-1 text-warning">{stats.late}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-warning" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-soft border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Absent</p>
+                <p className="text-2xl font-bold mt-1 text-destructive">{stats.absent}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                <XCircle className="w-5 h-5 text-destructive" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Filters */}
-        <Card className="shadow-soft">
+        <Card className="shadow-soft border-border/50 animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <CardHeader className="pb-4">
             <CardTitle className="text-base flex items-center gap-2">
               <Filter className="w-5 h-5 text-primary" />
-              Filters
+              Advanced Filters
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -124,29 +181,29 @@ export default function AdminAttendance() {
                   placeholder="Search employee..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 bg-background/50"
                 />
               </div>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  type="date" 
-                  value={startDate} 
-                  onChange={(e) => setStartDate(e.target.value)} 
-                  className="pl-9"
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="pl-9 bg-background/50"
                 />
               </div>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  type="date" 
-                  value={endDate} 
-                  onChange={(e) => setEndDate(e.target.value)} 
-                  className="pl-9"
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="pl-9 bg-background/50"
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background/50">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -161,32 +218,12 @@ export default function AdminAttendance() {
           </CardContent>
         </Card>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-4">
-          <div className="bg-muted/50 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-            <p className="text-xs text-muted-foreground font-medium">Total Records</p>
-          </div>
-          <div className="bg-success/10 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-success">{stats.present}</p>
-            <p className="text-xs text-success font-medium">Present</p>
-          </div>
-          <div className="bg-warning/10 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-warning">{stats.late}</p>
-            <p className="text-xs text-warning font-medium">Late</p>
-          </div>
-          <div className="bg-destructive/10 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-destructive">{stats.absent}</p>
-            <p className="text-xs text-destructive font-medium">Absent</p>
-          </div>
-        </div>
-
         {/* Records Table */}
-        <Card className="shadow-soft">
+        <Card className="shadow-soft border-border/50 overflow-hidden animate-slide-up" style={{ animationDelay: '0.2s' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-primary" />
-              Records
+              Records List
             </CardTitle>
             <CardDescription>
               Showing {filteredRecords.length} records from {format(new Date(startDate), 'MMM d')} to {format(new Date(endDate), 'MMM d, yyyy')}
@@ -199,15 +236,17 @@ export default function AdminAttendance() {
               </div>
             ) : filteredRecords.length === 0 ? (
               <div className="text-center py-16">
-                <Calendar className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+                <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mx-auto mb-4">
+                  <Filter className="w-8 h-8 text-muted-foreground" />
+                </div>
                 <p className="text-lg font-medium text-foreground">No records found</p>
-                <p className="text-muted-foreground mt-1">Try adjusting your filters</p>
+                <p className="text-muted-foreground mt-1">Try adjusting your filters to see more results</p>
               </div>
             ) : (
               <div className="rounded-xl border overflow-hidden">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted/50">
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
                       <TableHead className="font-semibold">Date</TableHead>
                       <TableHead className="font-semibold">Employee</TableHead>
                       <TableHead className="font-semibold">Check In</TableHead>
@@ -218,20 +257,20 @@ export default function AdminAttendance() {
                   </TableHeader>
                   <TableBody>
                     {filteredRecords.map((r) => (
-                      <TableRow key={r.id} className="hover:bg-muted/30">
+                      <TableRow key={r.id} className="hover:bg-muted/30 transition-colors">
                         <TableCell>
                           <div className="font-medium">{format(new Date(r.date), 'MMM d, yyyy')}</div>
                           <div className="text-xs text-muted-foreground">{format(new Date(r.date), 'EEEE')}</div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar className="w-8 h-8">
-                              <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                            <Avatar className="w-8 h-8 border border-border">
+                              <AvatarFallback className="bg-gradient-to-br from-primary to-indigo-600 text-white text-xs font-bold">
                                 {getInitials(r.profiles?.full_name)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium text-sm">{r.profiles?.full_name}</p>
+                              <p className="font-medium text-sm text-foreground">{r.profiles?.full_name}</p>
                               <p className="text-xs text-muted-foreground">{r.profiles?.email}</p>
                             </div>
                           </div>
@@ -239,7 +278,7 @@ export default function AdminAttendance() {
                         <TableCell>
                           <div className="flex items-center gap-1.5">
                             <Clock className="w-4 h-4 text-success" />
-                            <span className="font-medium">
+                            <span className="font-medium font-mono text-sm">
                               {r.check_in ? format(new Date(r.check_in), 'hh:mm a') : '—'}
                             </span>
                           </div>
@@ -247,7 +286,7 @@ export default function AdminAttendance() {
                         <TableCell>
                           <div className="flex items-center gap-1.5">
                             <Clock className="w-4 h-4 text-primary" />
-                            <span className="font-medium">
+                            <span className="font-medium font-mono text-sm">
                               {r.check_out ? format(new Date(r.check_out), 'hh:mm a') : '—'}
                             </span>
                           </div>
