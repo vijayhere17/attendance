@@ -44,8 +44,7 @@ export default function CheckInOut() {
   const [actionLoading, setActionLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Mock streak data for now - in a real app this would come from the database
-  const [streak, setStreak] = useState(12);
+  const streak = profile?.current_streak || 0;
 
   const fetchTodayAttendance = async () => {
     if (!profile) return;

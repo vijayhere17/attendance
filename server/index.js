@@ -5,6 +5,9 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/auth.js';
 import attendanceRoutes from './routes/attendance.js';
 import officeRoutes from './routes/office.js';
+import adminRoutes from './routes/admin.js';
+import notificationRoutes from './routes/notifications.js';
+import achievementRoutes from './routes/achievements.js';
 
 dotenv.config();
 
@@ -18,6 +21,9 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/office', officeRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/achievements', achievementRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

@@ -167,4 +167,48 @@ router.get('/history', protect, async (req, res) => {
     res.json(attendance);
 });
 
+// @desc    Get Leaderboard
+// @route   GET /api/attendance/leaderboard
+// @access  Private
+router.get('/leaderboard', protect, async (req, res) => {
+    try {
+        // Aggregate to find top users by attendance count
+        // This is a simple implementation. You might want to filter by month/week.
+        const leaderboard = await Attendance.aggregate([
+            {
+                $group: {
+                    _id: '$user',
+                    total_attendance: { $sum: 1 },
+                    // You can add logic for streaks here if you store it on attendance or calculate it
+                }
+            },
+            { $sort: { total_attendance: -1 } },
+            { $limit: 10 },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: '$user' },
+            {
+                $project: {
+                    id: '$_id',
+                    full_name: '$user.full_name',
+                    avatar_url: '$user.avatar_url', // Assuming this field exists or will exist
+                    total_attendance: 1,
+                    current_streak: '$user.current_streak'
+                }
+            }
+        ]);
+
+        res.json(leaderboard);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 export default router;

@@ -17,28 +17,8 @@ export function Leaderboard() {
         queryKey: ['leaderboard'],
         queryFn: async () => {
             try {
-                // TODO: Implement /api/leaderboard endpoint
-                // Mock data for now
-                return [
-                    {
-                        id: '1',
-                        full_name: 'John Doe',
-                        current_streak: 10,
-                        total_attendance: 50
-                    },
-                    {
-                        id: '2',
-                        full_name: 'Jane Smith',
-                        current_streak: 8,
-                        total_attendance: 45
-                    },
-                    {
-                        id: '3',
-                        full_name: 'Bob Johnson',
-                        current_streak: 5,
-                        total_attendance: 40
-                    }
-                ] as LeaderboardEntry[];
+                const { data } = await client.get('/attendance/leaderboard');
+                return data as LeaderboardEntry[];
             } catch (error) {
                 console.error("Error fetching leaderboard", error);
                 return [];

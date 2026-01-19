@@ -53,28 +53,8 @@ export default function AdminEmployees() {
     const fetchEmployees = async () => {
       try {
         // TODO: Implement /api/admin/employees endpoint
-        // For now, mocking data or using a placeholder
-        const mockEmployees: Employee[] = [
-          {
-            _id: '1',
-            full_name: 'John Doe',
-            email: 'john@example.com',
-            role: 'employee',
-            shift_start: '09:00:00',
-            shift_end: '18:00:00',
-            createdAt: new Date().toISOString()
-          },
-          {
-            _id: '2',
-            full_name: 'Jane Smith',
-            email: 'jane@example.com',
-            role: 'admin',
-            shift_start: '09:00:00',
-            shift_end: '18:00:00',
-            createdAt: new Date().toISOString()
-          }
-        ];
-        setEmployees(mockEmployees);
+        const { data } = await client.get('/admin/employees');
+        setEmployees(data);
       } catch (error) {
         console.error("Error fetching employees", error);
       } finally {

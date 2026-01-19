@@ -55,30 +55,26 @@ export default function AdminDashboard() {
         // For now, we'll simulate this by fetching raw data or using mock data
         // TODO: Implement /api/admin/dashboard/stats endpoint
 
-        // Mocking data for now to get the UI working without Supabase
-        const mockStats = {
-          total: 12,
-          present: 8,
-          late: 2,
-          absent: 2
-        };
-        setStats(mockStats);
-        setAttendanceRate(Math.round(((mockStats.present + mockStats.late) / mockStats.total) * 100));
+        const statsRes = await client.get('/admin/dashboard/stats');
+        setStats(statsRes.data);
 
-        // Mock recent records
-        setRecentRecords([
-          { id: '1', user: { full_name: 'John Doe' }, check_in: new Date().toISOString(), status: 'present' },
-          { id: '2', user: { full_name: 'Jane Smith' }, check_in: new Date().toISOString(), status: 'late' },
-        ]);
+        const totalPresent = statsRes.data.present + statsRes.data.late;
+        const totalEmployees = statsRes.data.total;
+        setAttendanceRate(totalEmployees > 0 ? Math.round((totalPresent / totalEmployees) * 100) : 0);
 
-        // Mock weekly data
-        setWeeklyData([
-          { day: 'Mon', present: 10, late: 1, absent: 1 },
-          { day: 'Tue', present: 9, late: 2, absent: 1 },
-          { day: 'Wed', present: 11, late: 0, absent: 1 },
-          { day: 'Thu', present: 8, late: 3, absent: 1 },
-          { day: 'Fri', present: 10, late: 1, absent: 1 },
-        ]);
+        // Fetch recent records (using existing history endpoint for now, or create a new one if needed)
+        // For admin dashboard, we might want a specific 'recent activity' endpoint that returns all users' recent checks
+        // Assuming /attendance/history returns current user's history, we need an admin endpoint for ALL history
+        // Let's assume we added /api/admin/activity or similar. For now, we'll skip recent records or mock if endpoint missing.
+        // Actually, let's add a quick fetch for recent activity if we can, or just leave it empty until endpoint exists.
+        // We didn't create /api/admin/activity in the plan, so let's stick to what we have or add it.
+        // Wait, we can use the employees list or something? No.
+        // Let's just comment out the mock data for recent records and leave it empty for now to avoid errors, 
+        // or better, let's keep the mock for recent records ONLY if we didn't implement the backend for it.
+        // We implemented stats and weekly.
+
+        const weeklyRes = await client.get('/admin/dashboard/weekly');
+        setWeeklyData(weeklyRes.data);
 
       } catch (error) {
         console.error("Error fetching dashboard data", error);

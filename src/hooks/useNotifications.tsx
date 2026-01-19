@@ -16,40 +16,23 @@ export function useNotifications() {
     const queryClient = useQueryClient();
 
     const { data: notifications = [], isLoading } = useQuery({
-        queryKey: ['notifications', user?.id],
+        queryKey: ['notifications', user?._id],
         queryFn: async () => {
             if (!user) return [];
 
-            // Mock data for now
-            return [
-                {
-                    id: '1',
-                    title: 'Welcome to GeoAttend!',
-                    message: 'Your account has been successfully set up.',
-                    type: 'success',
-                    read: false,
-                    created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-                },
-                {
-                    id: '2',
-                    title: 'System Update',
-                    message: 'We have updated the dashboard with new features.',
-                    type: 'info',
-                    read: true,
-                    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-                }
-            ] as Notification[];
+            const { data } = await client.get('/notifications');
+            return data as Notification[];
         },
         enabled: !!user,
     });
 
     const markAsRead = useMutation({
         mutationFn: async (id: string) => {
-            // In a real app: await client.put(`/notifications/${id}/read`);
+            await client.put(`/notifications/${id}/read`);
             return id;
         },
         onSuccess: (id) => {
-            queryClient.setQueryData(['notifications', user?.id], (old: Notification[] | undefined) => {
+            queryClient.setQueryData(['notifications', user?._id], (old: Notification[] | undefined) => {
                 return old?.map(n => n.id === id ? { ...n, read: true } : n) || [];
             });
         },
@@ -57,11 +40,11 @@ export function useNotifications() {
 
     const markAllAsRead = useMutation({
         mutationFn: async () => {
-            // In a real app: await client.put(`/notifications/read-all`);
+            await client.put(`/notifications/read-all`);
             return true;
         },
         onSuccess: () => {
-            queryClient.setQueryData(['notifications', user?.id], (old: Notification[] | undefined) => {
+            queryClient.setQueryData(['notifications', user?._id], (old: Notification[] | undefined) => {
                 return old?.map(n => ({ ...n, read: true })) || [];
             });
         },
@@ -69,11 +52,11 @@ export function useNotifications() {
 
     const deleteNotification = useMutation({
         mutationFn: async (id: string) => {
-            // In a real app: await client.delete(`/notifications/${id}`);
+            await client.delete(`/notifications/${id}`);
             return id;
         },
         onSuccess: (id) => {
-            queryClient.setQueryData(['notifications', user?.id], (old: Notification[] | undefined) => {
+            queryClient.setQueryData(['notifications', user?._id], (old: Notification[] | undefined) => {
                 return old?.filter(n => n.id !== id) || [];
             });
         },

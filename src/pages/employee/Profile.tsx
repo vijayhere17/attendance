@@ -64,7 +64,7 @@ export default function Profile() {
         },
         {
             label: 'On Time Rate',
-            value: '98%', // Mock for now
+            value: `${profile?.total_attendance ? Math.round(((profile.total_attendance - (profile.late_count || 0)) / profile.total_attendance) * 100) : 100}%`,
             icon: Clock,
             color: 'text-green-500',
             bg: 'bg-green-500/10',

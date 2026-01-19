@@ -13,7 +13,9 @@ interface Profile {
   current_streak?: number;
   best_streak?: number;
   total_attendance?: number;
+  late_count?: number;
   notification_preferences?: any;
+  avatar_url?: string;
 }
 
 interface AuthContextType {
