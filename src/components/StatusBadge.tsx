@@ -8,28 +8,38 @@ interface StatusBadgeProps {
   className?: string;
 }
 
-const statusConfig: Record<string, { 
-  label: string; 
+const statusConfig: Record<string, {
+  label: string;
   className: string;
   icon: typeof CheckCircle2;
 }> = {
-  present: { 
-    label: 'Present', 
+  present: {
+    label: 'Present',
     className: 'bg-success/10 text-success border-success/20',
     icon: CheckCircle2
   },
-  late: { 
-    label: 'Late', 
+  late: {
+    label: 'Late',
     className: 'bg-warning/10 text-warning border-warning/20',
     icon: Clock
   },
-  early_exit: { 
-    label: 'Early Exit', 
+  early_exit: {
+    label: 'Early Exit',
     className: 'bg-warning/10 text-warning border-warning/20',
     icon: LogOut
   },
-  absent: { 
-    label: 'Absent', 
+  halfday: {
+    label: 'Half Day',
+    className: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+    icon: Clock
+  },
+  incomplete: {
+    label: 'Incomplete',
+    className: 'bg-muted text-muted-foreground border-border',
+    icon: Clock
+  },
+  absent: {
+    label: 'Absent',
     className: 'bg-destructive/10 text-destructive border-destructive/20',
     icon: XCircle
   },

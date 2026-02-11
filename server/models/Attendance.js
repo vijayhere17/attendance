@@ -39,10 +39,31 @@ const attendanceSchema = new mongoose.Schema({
     distance_at_check_out: {
         type: Number,
     },
+    // LEGACY: Simple status (kept for backward compatibility)
     status: {
         type: String,
-        enum: ['present', 'late', 'early_exit', 'absent'],
+        enum: ['present', 'late', 'early_exit', 'absent', 'incomplete', 'halfday'],
         default: 'absent',
+    },
+    // NEW: Track total worked time in minutes
+    worked_minutes: {
+        type: Number,
+        default: 0,
+    },
+    // NEW: Detailed status tracking
+    is_late: {
+        type: Boolean,
+        default: false,
+    },
+    is_early_checkout: {
+        type: Boolean,
+        default: false,
+    },
+    // NEW: Final calculated status (Present, HalfDay, Absent)
+    final_status: {
+        type: String,
+        enum: ['present', 'halfday', 'absent', null],
+        default: null,
     },
 }, {
     timestamps: true,

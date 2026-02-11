@@ -3,6 +3,7 @@ import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import client from '@/api/client';
 import {
   Users,
@@ -17,7 +18,11 @@ import {
   List,
   Filter,
   MoreVertical,
-  UserPlus
+  UserPlus,
+  Copy,
+  Check,
+  Key,
+  AlertTriangle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -32,15 +37,43 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface Employee {
   _id: string;
   full_name: string;
   email: string;
   role: string;
+  batch?: string | null;
   shift_start: string;
   shift_end: string;
   createdAt: string;
+  must_change_password?: boolean;
+}
+
+// NEW: Interface for create user response
+interface CreateUserResponse {
+  success: boolean;
+  message: string;
+  user: Employee;
+  temporary_password: string;
+  instructions: string;
 }
 
 export default function AdminEmployees() {
@@ -49,20 +82,114 @@ export default function AdminEmployees() {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  // NEW: States for create user dialog
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState<'employee' | 'intern'>('employee');
+  const [newUserBatch, setNewUserBatch] = useState<'batch1' | 'batch2'>('batch1');
+
+  // NEW: State for showing temp password after creation
+  const [createdUser, setCreatedUser] = useState<CreateUserResponse | null>(null);
+  const [passwordCopied, setPasswordCopied] = useState(false);
+
+  const fetchEmployees = async () => {
+    try {
+      const { data } = await client.get('/admin/employees');
+      setEmployees(data);
+    } catch (error) {
+      console.error("Error fetching employees", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        // TODO: Implement /api/admin/employees endpoint
-        const { data } = await client.get('/admin/employees');
-        setEmployees(data);
-      } catch (error) {
-        console.error("Error fetching employees", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchEmployees();
   }, []);
+
+  // NEW: Handle create user
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newUserName.trim() || !newUserEmail.trim()) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const { data } = await client.post('/admin/users', {
+        full_name: newUserName,
+        email: newUserEmail,
+        role: newUserRole,
+        batch: newUserRole === 'intern' ? newUserBatch : null,
+      });
+
+      // Show the temp password to admin
+      setCreatedUser(data);
+
+      // Refresh employee list
+      fetchEmployees();
+
+      toast.success('User created successfully!');
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      toast.error(error.response?.data?.message || 'Failed to create user');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  // NEW: Reset form and close dialog
+  const handleCloseDialog = () => {
+    setCreateDialogOpen(false);
+    setCreatedUser(null);
+    setNewUserName('');
+    setNewUserEmail('');
+    setNewUserRole('employee');
+    setNewUserBatch('batch1');
+    setPasswordCopied(false);
+  };
+
+  // NEW: Copy password to clipboard
+  const copyPassword = async () => {
+    if (createdUser?.temporary_password) {
+      await navigator.clipboard.writeText(createdUser.temporary_password);
+      setPasswordCopied(true);
+      toast.success('Password copied to clipboard');
+      setTimeout(() => setPasswordCopied(false), 2000);
+    }
+  };
+
+  // NEW: Handle password reset
+  const handleResetPassword = async (userId: string) => {
+    try {
+      const { data } = await client.post(`/admin/users/${userId}/reset-password`);
+      toast.success('Password reset successfully', {
+        description: `New temporary password: ${data.temporary_password}`,
+        duration: 10000,
+      });
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to reset password');
+    }
+  };
+
+  // NEW: Handle delete user
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Are you sure you want to delete ${userName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await client.delete(`/admin/users/${userId}`);
+      toast.success('User deleted successfully');
+      fetchEmployees();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to delete user');
+    }
+  };
 
   const filteredEmployees = employees.filter(emp =>
     emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -87,10 +214,197 @@ export default function AdminEmployees() {
             <p className="text-muted-foreground mt-1 text-lg">Manage your workforce and roles</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button className="gap-2 shadow-glow-accent hover:scale-105 transition-transform">
-              <UserPlus className="w-4 h-4" />
-              Add Employee
-            </Button>
+            {/* NEW: Create User Dialog */}
+            <Dialog open={createDialogOpen} onOpenChange={(open) => open ? setCreateDialogOpen(true) : handleCloseDialog()}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 shadow-glow-accent hover:scale-105 transition-transform">
+                  <UserPlus className="w-4 h-4" />
+                  Add Employee
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                {!createdUser ? (
+                  // CREATE USER FORM
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <UserPlus className="w-5 h-5 text-primary" />
+                        Create New User
+                      </DialogTitle>
+                      <DialogDescription>
+                        Add a new employee or intern. A temporary password will be generated.
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <form onSubmit={handleCreateUser} className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="full_name">Full Name *</Label>
+                        <Input
+                          id="full_name"
+                          placeholder="John Doe"
+                          value={newUserName}
+                          onChange={(e) => setNewUserName(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="john@company.com"
+                          value={newUserEmail}
+                          onChange={(e) => setNewUserEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Role *</Label>
+                        <Select value={newUserRole} onValueChange={(v: 'employee' | 'intern') => setNewUserRole(v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="employee">
+                              <div className="flex items-center gap-2">
+                                <Shield className="w-4 h-4" />
+                                Employee (Full-time)
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="intern">
+                              <div className="flex items-center gap-2">
+                                <Users className="w-4 h-4" />
+                                Intern (Part-time)
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Show batch selector only for interns */}
+                      {newUserRole === 'intern' && (
+                        <div className="space-y-2 animate-slide-up">
+                          <Label htmlFor="batch">Batch *</Label>
+                          <Select value={newUserBatch} onValueChange={(v: 'batch1' | 'batch2') => setNewUserBatch(v)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select batch" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="batch1">
+                                <div className="flex flex-col">
+                                  <span>Batch 1</span>
+                                  <span className="text-xs text-muted-foreground">10:30 AM - 1:30 PM</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="batch2">
+                                <div className="flex flex-col">
+                                  <span>Batch 2</span>
+                                  <span className="text-xs text-muted-foreground">3:00 PM - 6:00 PM</span>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      <DialogFooter className="pt-4">
+                        <Button type="button" variant="outline" onClick={handleCloseDialog}>
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={creating} className="gap-2">
+                          {creating ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Creating...
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="w-4 h-4" />
+                              Create User
+                            </>
+                          )}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </>
+                ) : (
+                  // SHOW TEMP PASSWORD AFTER CREATION
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2 text-success">
+                        <Check className="w-5 h-5" />
+                        User Created Successfully!
+                      </DialogTitle>
+                      <DialogDescription>
+                        Share these credentials with the user. They will be required to change their password on first login.
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                      {/* User details */}
+                      <div className="p-4 rounded-lg bg-muted/50 space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Name:</span>
+                          <span className="font-medium">{createdUser.user.full_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Email:</span>
+                          <span className="font-medium">{createdUser.user.email}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Role:</span>
+                          <Badge variant="secondary">{createdUser.user.role}</Badge>
+                        </div>
+                        {createdUser.user.batch && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Batch:</span>
+                            <Badge variant="outline">{createdUser.user.batch}</Badge>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* IMPORTANT: Temporary password */}
+                      <div className="p-4 rounded-lg bg-warning/10 border border-warning/30 space-y-2">
+                        <div className="flex items-center gap-2 text-warning font-medium">
+                          <Key className="w-4 h-4" />
+                          Temporary Password
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 p-3 rounded bg-background font-mono text-lg tracking-widest">
+                            {createdUser.temporary_password}
+                          </code>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={copyPassword}
+                            className="shrink-0"
+                          >
+                            {passwordCopied ? (
+                              <Check className="w-4 h-4 text-success" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                        <div className="flex items-start gap-2 text-xs text-muted-foreground mt-2">
+                          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span>This password will only be shown once. The user must change it on first login.</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <Button onClick={handleCloseDialog} className="w-full">
+                        Done
+                      </Button>
+                    </DialogFooter>
+                  </>
+                )}
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -161,9 +475,16 @@ export default function AdminEmployees() {
                         </Avatar>
                         <div>
                           <CardTitle className="text-base font-bold">{emp.full_name}</CardTitle>
-                          <Badge variant={emp.role === 'admin' ? 'default' : 'secondary'} className="mt-1 text-xs">
-                            {emp.role}
-                          </Badge>
+                          <div className="flex gap-1 mt-1">
+                            <Badge variant={emp.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
+                              {emp.role}
+                            </Badge>
+                            {emp.batch && (
+                              <Badge variant="outline" className="text-xs">
+                                {emp.batch}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <DropdownMenu>
@@ -175,9 +496,20 @@ export default function AdminEmployees() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleResetPassword(emp._id)}>
+                            <Key className="w-4 h-4 mr-2" />
+                            Reset Password
+                          </DropdownMenuItem>
                           <DropdownMenuItem>View Profile</DropdownMenuItem>
                           <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">Deactivate</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => handleDeleteUser(emp._id, emp.full_name)}
+                            disabled={emp.role === 'admin'}
+                          >
+                            Delete User
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </CardHeader>
@@ -198,6 +530,11 @@ export default function AdminEmployees() {
                           <span>Joined {format(new Date(emp.createdAt), 'MMM d, yyyy')}</span>
                         </div>
                       </div>
+                      {emp.must_change_password && (
+                        <Badge variant="outline" className="text-warning border-warning/50 bg-warning/5 w-full justify-center">
+                          Pending First Login
+                        </Badge>
+                      )}
                       <div className="pt-2 flex gap-2">
                         <Button variant="outline" className="flex-1 h-9 text-xs">View History</Button>
                         <Button variant="secondary" className="flex-1 h-9 text-xs">Edit</Button>
@@ -215,6 +552,7 @@ export default function AdminEmployees() {
                         <TableHead className="font-semibold pl-6">Employee</TableHead>
                         <TableHead className="font-semibold">Role</TableHead>
                         <TableHead className="font-semibold">Shift</TableHead>
+                        <TableHead className="font-semibold">Status</TableHead>
                         <TableHead className="font-semibold">Joined</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
@@ -236,10 +574,17 @@ export default function AdminEmployees() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={emp.role === 'admin' ? 'default' : 'secondary'} className="gap-1 font-medium">
-                              <Shield className="w-3 h-3" />
-                              {emp.role}
-                            </Badge>
+                            <div className="flex gap-1">
+                              <Badge variant={emp.role === 'admin' ? 'default' : 'secondary'} className="gap-1 font-medium">
+                                <Shield className="w-3 h-3" />
+                                {emp.role}
+                              </Badge>
+                              {emp.batch && (
+                                <Badge variant="outline" className="text-xs">
+                                  {emp.batch}
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
@@ -250,14 +595,46 @@ export default function AdminEmployees() {
                             </div>
                           </TableCell>
                           <TableCell>
+                            {emp.must_change_password ? (
+                              <Badge variant="outline" className="text-warning border-warning/50 bg-warning/5">
+                                Pending Login
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-success border-success/50 bg-success/5">
+                                Active
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
                             <div className="text-sm text-muted-foreground">
                               {format(new Date(emp.createdAt), 'MMM d, yyyy')}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleResetPassword(emp._id)}>
+                                  <Key className="w-4 h-4 mr-2" />
+                                  Reset Password
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>View Profile</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => handleDeleteUser(emp._id, emp.full_name)}
+                                  disabled={emp.role === 'admin'}
+                                >
+                                  Delete User
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}

@@ -19,7 +19,10 @@ import {
   Timer,
   Fingerprint,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Clock,
+  Users,
+  Briefcase
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, differenceInMinutes, differenceInHours } from 'date-fns';
@@ -27,6 +30,7 @@ import { Progress } from '@/components/ui/progress';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
 import { StreakCounter } from '@/components/StreakCounter';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
+import { Badge } from '@/components/ui/badge';
 
 interface TodayAttendance {
   _id: string;
@@ -34,6 +38,35 @@ interface TodayAttendance {
   check_out: string | null;
   status: string;
   distance_at_check_in: number | null;
+  worked_minutes?: number;
+  is_late?: boolean;
+  is_early_checkout?: boolean;
+  final_status?: string;
+}
+
+// NEW: Shift configuration interface
+interface ShiftConfig {
+  role: string;
+  batch: string | null;
+  shift_start: string;
+  shift_end: string;
+  check_in_window_start: string;
+  check_in_window_end: string;
+  min_minutes: number;
+  description: string;
+  formatted: {
+    shift_start: string;
+    shift_end: string;
+    check_in_window: string;
+    min_hours: string;
+  };
+  status: {
+    canCheckIn: boolean;
+    canCheckOut: boolean;
+    isBeforeCheckIn: boolean;
+    isAfterCheckIn: boolean;
+    currentTime: string;
+  };
 }
 
 export default function CheckInOut() {
@@ -43,8 +76,22 @@ export default function CheckInOut() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [shiftConfig, setShiftConfig] = useState<ShiftConfig | null>(null);
+  const [shiftLoading, setShiftLoading] = useState(true);
 
   const streak = profile?.current_streak || 0;
+
+  // NEW: Fetch shift configuration
+  const fetchShiftConfig = async () => {
+    try {
+      const { data } = await client.get('/shifts/my-shift');
+      setShiftConfig(data);
+    } catch (error) {
+      console.error('Error fetching shift config:', error);
+    } finally {
+      setShiftLoading(false);
+    }
+  };
 
   const fetchTodayAttendance = async () => {
     if (!profile) return;
@@ -62,6 +109,7 @@ export default function CheckInOut() {
   useEffect(() => {
     if (profile) {
       fetchTodayAttendance();
+      fetchShiftConfig();
     }
   }, [profile]);
 
@@ -377,34 +425,113 @@ export default function CheckInOut() {
             {/* Streak Counter */}
             <StreakCounter streak={streak} bestStreak={15} />
 
-            {/* Shift Info */}
+            {/* Shift Info - NEW: Dynamic shift config display */}
             <Card className="shadow-soft border-border/50">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Shift Schedule</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" />
+                    Shift Schedule
+                  </CardTitle>
+                  {shiftConfig && (
+                    <div className="flex gap-2">
+                      <Badge variant={profile?.role === 'intern' ? 'secondary' : 'default'} className="text-xs">
+                        {profile?.role === 'intern' ? (
+                          <><Users className="w-3 h-3 mr-1" /> Intern</>
+                        ) : (
+                          <><Briefcase className="w-3 h-3 mr-1" /> Employee</>
+                        )}
+                      </Badge>
+                      {profile?.batch && (
+                        <Badge variant="outline" className="text-xs">
+                          {profile.batch === 'batch1' ? 'Batch 1' : 'Batch 2'}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
-                    <span className="text-sm text-muted-foreground">Start Time</span>
-                    <span className="font-bold font-mono">
-                      {format(new Date(`2000-01-01 ${profile?.shift_start || '09:00:00'}`), 'hh:mm a')}
-                    </span>
+                {shiftLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                   </div>
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
-                    <span className="text-sm text-muted-foreground">End Time</span>
-                    <span className="font-bold font-mono">
-                      {format(new Date(`2000-01-01 ${profile?.shift_end || '18:00:00'}`), 'hh:mm a')}
-                    </span>
+                ) : shiftConfig?.formatted ? (
+                  <div className="space-y-4">
+                    {/* Check-in Window Status */}
+                    <div className={`p-3 rounded-xl border ${shiftConfig.status.canCheckIn
+                      ? 'bg-success/10 border-success/30'
+                      : shiftConfig.status.isBeforeCheckIn
+                        ? 'bg-warning/10 border-warning/30'
+                        : 'bg-muted/30 border-border/50'
+                      }`}>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Check-in Window</p>
+                      <p className="font-bold">
+                        {shiftConfig.formatted.check_in_window}
+                      </p>
+                      <p className={`text-xs mt-1 ${shiftConfig.status.canCheckIn ? 'text-success' :
+                        shiftConfig.status.isBeforeCheckIn ? 'text-warning' : 'text-muted-foreground'
+                        }`}>
+                        {shiftConfig.status.canCheckIn
+                          ? '✓ Check-in available now'
+                          : shiftConfig.status.isBeforeCheckIn
+                            ? '⏳ Check-in opens soon'
+                            : '✕ Check-in window closed'}
+                      </p>
+                    </div>
+
+                    {/* Shift Times */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-xl bg-muted/30">
+                        <span className="text-xs text-muted-foreground block">Shift Start</span>
+                        <span className="font-bold font-mono">{shiftConfig.formatted.shift_start}</span>
+                      </div>
+                      <div className="p-3 rounded-xl bg-muted/30">
+                        <span className="text-xs text-muted-foreground block">Shift End</span>
+                        <span className="font-bold font-mono">{shiftConfig.formatted.shift_end}</span>
+                      </div>
+                    </div>
+
+                    {/* Minimum Hours */}
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20">
+                      <span className="text-sm text-muted-foreground">Min. Required</span>
+                      <span className="font-bold text-primary">{shiftConfig.formatted.min_hours} hours</span>
+                    </div>
+
+                    <div className="pt-2">
+                      <Button variant="outline" className="w-full justify-between group" asChild>
+                        <a href="/employee/history">
+                          View History
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </a>
+                      </Button>
+                    </div>
                   </div>
-                  <div className="pt-2">
-                    <Button variant="outline" className="w-full justify-between group" asChild>
-                      <a href="/employee/history">
-                        View History
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </a>
-                    </Button>
+                ) : (
+                  /* Fallback to legacy display if no shift config */
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+                      <span className="text-sm text-muted-foreground">Start Time</span>
+                      <span className="font-bold font-mono">
+                        {format(new Date(`2000-01-01 ${profile?.shift_start || '09:00:00'}`), 'hh:mm a')}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+                      <span className="text-sm text-muted-foreground">End Time</span>
+                      <span className="font-bold font-mono">
+                        {format(new Date(`2000-01-01 ${profile?.shift_end || '18:00:00'}`), 'hh:mm a')}
+                      </span>
+                    </div>
+                    <div className="pt-2">
+                      <Button variant="outline" className="w-full justify-between group" asChild>
+                        <a href="/employee/history">
+                          View History
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </a>
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>

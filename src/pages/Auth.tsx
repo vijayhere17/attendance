@@ -5,55 +5,38 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Loader2, Mail, Lock, User, ArrowRight, Sparkles, Zap, Heart } from 'lucide-react';
+import { MapPin, Loader2, Mail, Lock, ArrowRight, Sparkles, Zap, Heart, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
-import { Progress } from '@/components/ui/progress';
 
+// Login validation schema
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-const signupSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  fullName: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long'),
 });
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
-  const [signupName, setSignupName] = useState('');
-  const [activeTab, setActiveTab] = useState('login');
 
-  const { signIn, signUp, user, isAdmin, loading } = useAuth();
+  const { signIn, user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect authenticated users
   useEffect(() => {
     if (!loading && user) {
-      if (isAdmin) {
+      // Check if user must change password first
+      if (user.must_change_password) {
+        navigate('/change-password');
+      } else if (isAdmin) {
         navigate('/admin');
       } else {
         navigate('/employee');
       }
     }
   }, [user, isAdmin, loading, navigate]);
-
-  const getPasswordStrength = (password: string) => {
-    if (password.length === 0) return 0;
-    if (password.length < 6) return 25;
-    if (password.length < 8) return 50;
-    if (password.length < 12) return 75;
-    return 100;
-  };
-
-  const passwordStrength = getPasswordStrength(signupPassword);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,31 +50,7 @@ export default function Auth() {
     setIsLoading(true);
     try {
       await signIn(loginEmail, loginPassword);
-      // Success toast is handled in useAuth
-    } catch (error: any) {
-      // Error toast is handled in useAuth
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const validation = signupSchema.safeParse({
-      email: signupEmail,
-      password: signupPassword,
-      fullName: signupName
-    });
-    if (!validation.success) {
-      toast.error(validation.error.errors[0].message);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await signUp(signupEmail, signupPassword, signupName);
-      // Success toast is handled in useAuth
+      // Redirect is handled by useEffect
     } catch (error: any) {
       // Error toast is handled in useAuth
     } finally {
@@ -117,7 +76,7 @@ export default function Auth() {
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4 md:p-8">
         <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
 
-          {/* Left Side - Branding with asymmetric design */}
+          {/* Left Side - Branding */}
           <div className="hidden lg:block space-y-8 animate-slide-up">
             {/* Logo */}
             <div className="flex items-center gap-3">
@@ -179,7 +138,7 @@ export default function Auth() {
             </div>
           </div>
 
-          {/* Right Side - Auth Form with unique design */}
+          {/* Right Side - Login Form Only (No Signup) */}
           <div className="w-full max-w-md mx-auto lg:mx-0 animate-scale-in">
             {/* Mobile Logo */}
             <div className="text-center mb-8 lg:hidden">
@@ -193,158 +152,74 @@ export default function Auth() {
             <Card className="shadow-large border-2 border-border/50 overflow-hidden backdrop-blur-sm bg-card/95">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-primary opacity-10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
 
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <CardHeader className="pb-4 relative">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Heart className="w-5 h-5 text-primary animate-pulse-soft" />
-                    <CardTitle className="text-2xl">Welcome!</CardTitle>
+              <CardHeader className="pb-4 relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <Heart className="w-5 h-5 text-primary animate-pulse-soft" />
+                  <CardTitle className="text-2xl">Welcome Back!</CardTitle>
+                </div>
+                <CardDescription>
+                  Sign in to continue to your dashboard
+                </CardDescription>
+                {/* Admin-only notice */}
+                <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border/50">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Shield className="w-4 h-4" />
+                    <span>Contact your administrator for account access</span>
                   </div>
-                  <CardDescription>
-                    {activeTab === 'login' ? 'Sign in to continue your journey' : 'Create your account to get started'}
-                  </CardDescription>
-                  <TabsList className="grid w-full grid-cols-2 mt-4 bg-muted/50">
-                    <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                      Sign In
-                    </TabsTrigger>
-                    <TabsTrigger value="signup" className="data-[state=active]:bg-accent data-[state=active]:text-white">
-                      Sign Up
-                    </TabsTrigger>
-                  </TabsList>
-                </CardHeader>
+                </div>
+              </CardHeader>
 
-                <CardContent>
-                  <TabsContent value="login" className="mt-0 space-y-4 animate-slide-up">
-                    <form onSubmit={handleLogin} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="login-email" className="text-sm font-medium">Email Address</Label>
-                        <div className="relative group">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                          <Input
-                            id="login-email"
-                            type="email"
-                            placeholder="you@company.com"
-                            value={loginEmail}
-                            onChange={(e) => setLoginEmail(e.target.value)}
-                            className="pl-10 h-12 border-2 focus:border-primary transition-all"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
-                        <div className="relative group">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                          <Input
-                            id="login-password"
-                            type="password"
-                            placeholder="••••••••"
-                            value={loginPassword}
-                            onChange={(e) => setLoginPassword(e.target.value)}
-                            className="pl-10 h-12 border-2 focus:border-primary transition-all"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <Button
-                        type="submit"
-                        className="w-full h-12 text-base gap-2 shadow-coral ripple gradient-primary hover:shadow-lg"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Signing in...
-                          </>
-                        ) : (
-                          <>
-                            Sign In
-                            <ArrowRight className="w-5 h-5" />
-                          </>
-                        )}
-                      </Button>
-                    </form>
-                  </TabsContent>
-
-                  <TabsContent value="signup" className="mt-0 space-y-4 animate-slide-up">
-                    <form onSubmit={handleSignup} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-name" className="text-sm font-medium">Full Name</Label>
-                        <div className="relative group">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                          <Input
-                            id="signup-name"
-                            type="text"
-                            placeholder="John Doe"
-                            value={signupName}
-                            onChange={(e) => setSignupName(e.target.value)}
-                            className="pl-10 h-12 border-2 focus:border-accent transition-all"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-email" className="text-sm font-medium">Email Address</Label>
-                        <div className="relative group">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                          <Input
-                            id="signup-email"
-                            type="email"
-                            placeholder="you@company.com"
-                            value={signupEmail}
-                            onChange={(e) => setSignupEmail(e.target.value)}
-                            className="pl-10 h-12 border-2 focus:border-accent transition-all"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
-                        <div className="relative group">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                          <Input
-                            id="signup-password"
-                            type="password"
-                            placeholder="••••••••"
-                            value={signupPassword}
-                            onChange={(e) => setSignupPassword(e.target.value)}
-                            className="pl-10 h-12 border-2 focus:border-accent transition-all"
-                            required
-                          />
-                        </div>
-                        {signupPassword && (
-                          <div className="space-y-1 animate-slide-up">
-                            <Progress value={passwordStrength} className="h-2" />
-                            <p className="text-xs text-muted-foreground">
-                              Password strength: {
-                                passwordStrength < 50 ? 'Weak' :
-                                  passwordStrength < 75 ? 'Good' :
-                                    passwordStrength < 100 ? 'Strong' : 'Very Strong'
-                              }
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        type="submit"
-                        className="w-full h-12 text-base gap-2 shadow-teal ripple gradient-accent hover:shadow-lg"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Creating account...
-                          </>
-                        ) : (
-                          <>
-                            Create Account
-                            <ArrowRight className="w-5 h-5" />
-                          </>
-                        )}
-                      </Button>
-                    </form>
-                  </TabsContent>
-                </CardContent>
-              </Tabs>
+              <CardContent>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email" className="text-sm font-medium">Email Address</Label>
+                    <div className="relative group">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input
+                        id="login-email"
+                        type="email"
+                        placeholder="you@company.com"
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        className="pl-10 h-12 border-2 focus:border-primary transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
+                    <div className="relative group">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input
+                        id="login-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        className="pl-10 h-12 border-2 focus:border-primary transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full h-12 text-base gap-2 shadow-coral ripple gradient-primary hover:shadow-lg"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      <>
+                        Sign In
+                        <ArrowRight className="w-5 h-5" />
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
             </Card>
 
             <p className="text-center text-xs text-muted-foreground mt-6">

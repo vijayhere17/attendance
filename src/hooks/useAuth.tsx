@@ -7,7 +7,9 @@ interface Profile {
   _id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'employee';
+  role: 'admin' | 'employee' | 'intern';
+  batch?: 'batch1' | 'batch2' | null;
+  must_change_password?: boolean; // NEW: First-login password change flag
   shift_start?: string;
   shift_end?: string;
   current_streak?: number;

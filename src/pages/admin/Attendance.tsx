@@ -39,49 +39,52 @@ export default function AdminAttendance() {
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [shiftFilter, setShiftFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      // TODO: Implement /api/admin/attendance endpoint
-      // Mocking data for now
-      const mockRecords = [
-        {
-          _id: '1',
-          date: new Date().toISOString(),
-          user: { full_name: 'John Doe', email: 'john@example.com' },
-          check_in: new Date().toISOString(),
-          check_out: null,
-          distance_at_check_in: 50,
-          status: 'present'
-        },
-        {
-          _id: '2',
-          date: new Date().toISOString(),
-          user: { full_name: 'Jane Smith', email: 'jane@example.com' },
-          check_in: new Date().toISOString(),
-          check_out: new Date().toISOString(),
-          distance_at_check_in: 120,
-          status: 'late'
+      const { data } = await client.get('/admin/attendance', {
+        params: {
+          startDate,
+          endDate,
+          shift: shiftFilter
         }
-      ];
-      setRecords(mockRecords);
+      });
+      setRecords(data);
     } catch (error) {
       console.error("Error fetching attendance records", error);
+      toast.error('Failed to fetch records');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchRecords(); }, [startDate, endDate]);
+  useEffect(() => { fetchRecords(); }, [startDate, endDate, shiftFilter]);
 
   const handleExport = async () => {
     setExporting(true);
     try {
-      // TODO: Implement export endpoint
-      toast.info('Export functionality coming soon!');
+      const response = await client.get('/admin/attendance/export', {
+        params: {
+          startDate,
+          endDate,
+          shift: shiftFilter
+        },
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `attendance_${startDate}_to_${endDate}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Attendance report exported successfully');
     } catch (error) {
+      console.error("Export error:", error);
       toast.error('Export failed', { description: 'Please try again later.' });
     } finally {
       setExporting(false);
@@ -227,6 +230,17 @@ export default function AdminAttendance() {
                   <SelectItem value="absent">Absent</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={shiftFilter} onValueChange={setShiftFilter}>
+                <SelectTrigger className="bg-background/50">
+                  <SelectValue placeholder="All Shifts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Shifts</SelectItem>
+                  <SelectItem value="employee">Employee Shift</SelectItem>
+                  <SelectItem value="intern_batch1">Intern Batch 1</SelectItem>
+                  <SelectItem value="intern_batch2">Intern Batch 2</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
@@ -262,6 +276,7 @@ export default function AdminAttendance() {
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
                       <TableHead className="font-semibold">Date</TableHead>
                       <TableHead className="font-semibold">Employee</TableHead>
+                      <TableHead className="font-semibold">Shift</TableHead>
                       <TableHead className="font-semibold">Check In</TableHead>
                       <TableHead className="font-semibold">Check Out</TableHead>
                       <TableHead className="font-semibold">Distance</TableHead>
@@ -286,6 +301,16 @@ export default function AdminAttendance() {
                               <p className="font-medium text-sm text-foreground">{r.user?.full_name}</p>
                               <p className="text-xs text-muted-foreground">{r.user?.email}</p>
                             </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <span className="capitalize">{r.user?.role}</span>
+                            {r.user?.role === 'intern' && r.user?.batch && (
+                              <span className="text-xs text-muted-foreground ml-1">
+                                ({r.user.batch})
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import * as React from 'react';
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Auth from "./pages/Auth";
+import ChangePassword from "./pages/ChangePassword"; // NEW: First-login password change
 import CheckInOut from "./pages/employee/CheckInOut";
 import History from "./pages/employee/History";
 import Profile from "./pages/employee/Profile";
@@ -18,11 +19,27 @@ import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
-  const { user, profile, loading, isAdmin } = useAuth();
+// NEW: Route for first-login password change (user must be logged in but need to change password)
+function ChangePasswordRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   if (!user) return <Navigate to="/auth" replace />;
+
+  return <>{children}</>;
+}
+
+function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
+  const { user, loading, isAdmin } = useAuth();
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+  if (!user) return <Navigate to="/auth" replace />;
+
+  // NEW: Redirect to password change if first-login
+  if (user.must_change_password && window.location.pathname !== '/change-password') {
+    return <Navigate to="/change-password" replace />;
+  }
+
   if (requireAdmin && !isAdmin) return <Navigate to="/employee" replace />;
   if (!requireAdmin && isAdmin && !window.location.pathname.startsWith('/admin')) return <Navigate to="/admin" replace />;
 
@@ -34,6 +51,8 @@ function AppRoutes() {
     <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/" element={<Navigate to="/auth" replace />} />
+      {/* NEW: First-login password change route */}
+      <Route path="/change-password" element={<ChangePasswordRoute><ChangePassword /></ChangePasswordRoute>} />
       <Route path="/employee" element={<ProtectedRoute><CheckInOut /></ProtectedRoute>} />
       <Route path="/employee/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
       <Route path="/employee/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
