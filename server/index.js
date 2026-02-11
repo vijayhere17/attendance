@@ -8,6 +8,7 @@ import officeRoutes from './routes/office.js';
 import adminRoutes from './routes/admin.js';
 import notificationRoutes from './routes/notifications.js';
 import achievementRoutes from './routes/achievements.js';
+import shiftRoutes from './routes/shifts.js';
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use('/api/office', officeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/achievements', achievementRoutes);
+app.use('/api/shifts', shiftRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');
