@@ -4,7 +4,6 @@ import Office from '../models/Office.js';
 import User from '../models/User.js';
 import ShiftConfig from '../models/ShiftConfig.js';
 import { protect } from '../middleware/authMiddleware.js';
-import { sendAttendanceAlert } from '../services/notificationService.js';
 
 const router = express.Router();
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -17,20 +16,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
-}
-
-/**
- * Helper: Determine status based on shift start and grace period (Legacy/Admin fallback)
- */
-function determineStatus(currentTime, shiftStart, gracePeriodMins, isWithinRadius) {
-    if (!isWithinRadius) return 'absent';
-    if (!shiftStart) return 'present'; // Fallback if user has no shift start defined
-
-    const [hours, minutes] = shiftStart.split(':').map(Number);
-    const start = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hours, minutes);
-    const graceEnd = new Date(start.getTime() + (gracePeriodMins || 15) * 60 * 1000);
-
-    return currentTime > graceEnd ? 'late' : 'present';
 }
 
 // Helper: Parse time string (HH:MM or HH:MM:SS) to Date object for today
@@ -174,15 +159,6 @@ router.post('/check-in', protect, async (req, res) => {
             work_mode: work_mode // [NEW] Track if WFH
         });
 
-        try {
-            await sendAttendanceAlert(user, isLate ? 'LATE' : 'CHECK_IN', {
-                checkInTime: new Date().toLocaleTimeString(),
-                shiftStart: shiftConfig ? shiftConfig.shift_start : user.shift_start
-            });
-        } catch (notifErr) {
-            console.error('[Attendance] Notification failed:', notifErr.message);
-        }
-
         res.status(201).json({
             success: true,
             message: `Checked in successfully. ${isLate ? 'Marked as Late.' : 'On Time.'}`,
@@ -245,13 +221,6 @@ router.post('/check-out', protect, async (req, res) => {
             if (finalStatus === 'present') newStatus = 'present';
             else if (finalStatus === 'halfday') newStatus = 'halfday';
             else if (finalStatus === 'absent') newStatus = 'absent';
-            if (isEarlyCheckoutFlag) {
-                await sendAttendanceAlert(user, 'EARLY_EXIT', {
-                    checkOutTime: checkOutTime.toLocaleTimeString(),
-                    shiftEnd: shiftConfig.shift_end
-                });
-            }
-
         } else {
             const currentTime = new Date();
             const [endHours, endMinutes] = user.shift_end.split(':').map(Number);

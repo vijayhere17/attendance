@@ -67,12 +67,10 @@ export default function Auth() {
       <div className="auth-container">
         <div className="auth-branding">
           <div className="logo-section">
-            <div className="logo-box">
-              <MapPin />
-            </div>
+            <img src="src/logo.png" alt="Exotic Infotech" className="h-12 w-auto" />
             <div>
-              <h1 className="text-2xl font-bold">GeoAttend</h1>
-              <p className="text-sm text-muted-foreground">Radius-based Attendance</p>
+              <h1 className="text-2xl font-bold">Exotic Infotech</h1>
+              <p className="text-sm text-muted-foreground">Attendance Management System</p>
             </div>
           </div>
 
@@ -103,10 +101,8 @@ export default function Auth() {
         <div className="flex items-center justify-center">
           <div className="w-full">
             <div className="text-center mb-8 lg:hidden">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary text-white mb-4">
-                <MapPin className="w-7 h-7" />
-              </div>
-              <h1 className="text-2xl font-bold">GeoAttend</h1>
+              <img src="/logo.png" alt="Exotic Infotech" className="h-10 w-auto" />
+              <h1 className="text-2xl font-bold">Attendance System</h1>
             </div>
 
             <Card className="auth-form-card">

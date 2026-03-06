@@ -7,10 +7,6 @@
 ## 🚀 Key Features
 
 - 📍 **Precision Geo-fencing**: Check-in and check-out are only allowed when the user is within a specified radius of the office coordinates.
-- 🤖 **Telegram Bot Integration**: 
-  - Automated attendance reminders.
-  - Quick registration via deep-linking.
-  - Real-time notifications for status changes.
 - 📅 **Flexible Shift Management**: Support for multiple shifts (Morning, Afternoon, Night) with automated late and early-exit tracking.
 - 🏆 **Gamified Experience**: Earn achievements for consistent attendance and on-time performance.
 - 📊 **Power Admin Dashboard**:
@@ -95,7 +91,7 @@
 
 ## 📖 Usage
 
-1. **Register/Login**: Users can sign up and login via the web portal or link their Telegram account for notifications.
+1. **Register/Login**: Users can sign up and login via the web portal.
 2. **Setup Office**: Admins define office locations (latitude, longitude) and allowed radius (in meters).
 3. **Check-in**: Employees check-in via the dashboard. The system validates their GPS coordinates against the office location.
 4. **Reports**: Admins can generate and download monthly attendance reports in `.xlsx` format.

@@ -4,7 +4,6 @@ import Attendance from '../models/Attendance.js';
 import SystemSettings from '../models/SystemSettings.js';
 import ExcelJS from 'exceljs';
 import { protect, admin } from '../middleware/authMiddleware.js';
-import { getBotInfo } from '../services/telegramBot.js';
 
 const router = express.Router();
 
@@ -141,13 +140,8 @@ router.get('/employees', protect, admin, async (req, res) => {
     try {
         const employees = await User.find({}).select('-password').sort({ createdAt: -1 });
 
-        const botInfo = getBotInfo();
         const formatted = employees.map(user => {
-            const userObj = user.toObject();
-            if (userObj.studentId && botInfo) {
-                userObj.telegram_link = `https://t.me/${botInfo.username}?start=${userObj.studentId}`;
-            }
-            return userObj;
+            return user.toObject();
         });
 
         res.json(formatted);
@@ -243,7 +237,6 @@ router.post('/users', protect, admin, async (req, res) => {
                 shift_end: user.shift_end,
                 phone_number: user.phone_number,
                 studentId: user.studentId,
-                telegram_link: getBotInfo() ? `https://t.me/${getBotInfo().username}?start=${user.studentId}` : null,
             },
         });
     } catch (error) {

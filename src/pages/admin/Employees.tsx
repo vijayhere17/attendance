@@ -67,7 +67,6 @@ interface Employee {
   createdAt: string;
   must_change_password?: boolean;
   studentId?: string;
-  telegram_link?: string;
 }
 
 interface CreateUserResponse {
@@ -272,7 +271,6 @@ export default function AdminEmployees() {
                           onChange={(e) => setNewUserStudentId(e.target.value)}
                           required
                         />
-                        <p className="text-[10px] text-muted-foreground">Used to link user with Telegram Bot automatically.</p>
                       </div>
 
                       <div className="space-y-2">
@@ -406,34 +404,6 @@ export default function AdminEmployees() {
                         </div>
                       </div>
 
-                      {createdUser.user.telegram_link && (
-                        <div className="p-4 rounded-lg bg-primary/10 border border-primary/30 space-y-2">
-                          <div className="flex items-center gap-2 text-primary font-medium">
-                            <Users className="w-4 h-4" />
-                            Telegram Registration Link
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              readOnly
-                              value={createdUser.user.telegram_link}
-                              className="flex-1 bg-background text-xs truncate"
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              onClick={async () => {
-                                await navigator.clipboard.writeText(createdUser.user.telegram_link!);
-                                toast.success('Link copied!');
-                              }}
-                              className="shrink-0"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                          </div>
-                          <p className="text-[10px] text-muted-foreground">Send this link to the user. They only need to click it and press "Start".</p>
-                        </div>
-                      )}
 
                       <div className="p-4 rounded-lg bg-warning/10 border border-warning/30 space-y-2">
                         <div className="flex items-center gap-2 text-warning font-medium">
@@ -600,22 +570,6 @@ export default function AdminEmployees() {
                           {format(new Date(`2000-01-01 ${emp.shift_start}`), 'h:mm a')} - {format(new Date(`2000-01-01 ${emp.shift_end}`), 'h:mm a')}
                         </span>
                       </div>
-                      {emp.telegram_link && (
-                        <div className="pt-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full gap-2 text-xs h-8 border-primary/20 hover:border-primary/50"
-                            onClick={async () => {
-                              await navigator.clipboard.writeText(emp.telegram_link!);
-                              toast.success('Telegram link copied!');
-                            }}
-                          >
-                            <Users className="w-3.5 h-3.5" />
-                            Copy Telegram Link
-                          </Button>
-                        </div>
-                      )}
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Calendar className="w-4 h-4" />
                         <span>Joined {format(new Date(emp.createdAt), 'MMM d, yyyy')}</span>
@@ -716,15 +670,6 @@ export default function AdminEmployees() {
                                   <Key className="w-4 h-4 mr-2" />
                                   Reset Password
                                 </DropdownMenuItem>
-                                {emp.telegram_link && (
-                                  <DropdownMenuItem onClick={async () => {
-                                    await navigator.clipboard.writeText(emp.telegram_link!);
-                                    toast.success('Telegram link copied!');
-                                  }}>
-                                    <Users className="w-4 h-4 mr-2" />
-                                    Copy Telegram Link
-                                  </DropdownMenuItem>
-                                )}
                                 <DropdownMenuItem>View Profile</DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
