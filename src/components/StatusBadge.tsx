@@ -43,6 +43,11 @@ const statusConfig: Record<string, {
     className: 'bg-destructive/10 text-destructive border-destructive/20',
     icon: XCircle
   },
+  on_break: {
+    label: 'On Break',
+    className: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
+    icon: Clock
+  },
 };
 
 const sizeStyles = {

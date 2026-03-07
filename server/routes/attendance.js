@@ -118,7 +118,11 @@ router.post('/check-in', protect, async (req, res) => {
             }
         }
 
-        const today = new Date().toISOString().split('T')[0];
+
+
+        // Use local date string instead of UTC-based toISOString
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const existing = await Attendance.findOne({ user: userId, date: today });
 
         if (existing && existing.check_in) {
@@ -143,15 +147,15 @@ router.post('/check-in', protect, async (req, res) => {
                 }
 
                 isLate = isLateCheckIn(new Date(), shiftConfig);
-                const startOfMonth = new Date();
-                startOfMonth.setDate(1);
-                startOfMonth.setHours(0, 0, 0, 0);
+
+                // Use the existing 'now' variable for start of month
+                const startOfMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
 
                 if (work_mode === 'wfh') {
                     const wfhCount = await Attendance.countDocuments({
                         user: userId,
                         work_mode: 'wfh',
-                        date: { $gte: startOfMonth.toISOString().split('T')[0] }
+                        date: { $gte: startOfMonthStr }
                     });
 
                     if (wfhCount >= 2) {
@@ -163,7 +167,7 @@ router.post('/check-in', protect, async (req, res) => {
                     const lateCount = await Attendance.countDocuments({
                         user: userId,
                         is_late: true,
-                        date: { $gte: startOfMonth.toISOString().split('T')[0] }
+                        date: { $gte: startOfMonthStr }
                     });
 
                     if (lateCount >= 2) {
@@ -215,7 +219,8 @@ router.post('/check-out', protect, async (req, res) => {
     const userId = req.user._id;
 
     try {
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const attendance = await Attendance.findOne({ user: userId, date: today });
 
         if (!attendance) {
@@ -357,9 +362,29 @@ router.post('/resume-break', protect, async (req, res) => {
 });
 
 router.get('/today', protect, async (req, res) => {
-    const today = new Date().toISOString().split('T')[0];
-    const attendance = await Attendance.findOne({ user: req.user._id, date: today });
-    res.json(attendance || null);
+    try {
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const attendance = await Attendance.findOne({ user: req.user._id, date: today });
+
+        // Calculate WFH count for current month
+        const startOfMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+
+        const wfh_count = await Attendance.countDocuments({
+            user: req.user._id,
+            work_mode: 'wfh',
+            date: { $gte: startOfMonthStr }
+        });
+
+        res.json({
+            record: attendance || null,
+            wfh_count,
+            wfh_limit: 2
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
 });
 
 router.get('/history', protect, async (req, res) => {

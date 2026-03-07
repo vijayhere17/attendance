@@ -430,6 +430,7 @@ router.get('/attendance/export', protect, admin, async (req, res) => {
             { header: 'Check In', key: 'check_in', width: 15 },
             { header: 'Check Out', key: 'check_out', width: 15 },
             { header: 'Worked (Mins)', key: 'worked_minutes', width: 15 },
+            { header: 'Work Mode', key: 'work_mode', width: 15 },
             { header: 'Status', key: 'status', width: 15 },
             { header: 'Final Status', key: 'final_status', width: 15 },
         ];
@@ -452,6 +453,7 @@ router.get('/attendance/export', protect, admin, async (req, res) => {
                 check_in: record.check_in ? new Date(record.check_in).toLocaleTimeString() : 'N/A',
                 check_out: record.check_out ? new Date(record.check_out).toLocaleTimeString() : 'N/A',
                 worked_minutes: record.worked_minutes || 0,
+                work_mode: record.work_mode ? record.work_mode.toUpperCase() : 'OFFICE',
                 status: record.status || 'N/A',
                 final_status: record.final_status || record.status || 'N/A',
             });

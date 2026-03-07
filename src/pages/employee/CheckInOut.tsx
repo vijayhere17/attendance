@@ -19,7 +19,9 @@ import {
   Timer,
   Fingerprint,
   Clock,
-  Briefcase
+  Briefcase,
+  Pause,
+  Play
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, differenceInMinutes, differenceInHours } from 'date-fns';
@@ -38,6 +40,7 @@ interface TodayAttendance {
   is_late?: boolean;
   is_early_checkout?: boolean;
   final_status?: string;
+  is_on_break?: boolean;
 }
 
 interface ShiftConfig {
@@ -68,6 +71,8 @@ export default function CheckInOut() {
   const { profile } = useAuth();
   const { getCurrentPosition, loading: geoLoading, error: geoError } = useGeolocation();
   const [todayRecord, setTodayRecord] = useState<TodayAttendance | null>(null);
+  const [wfhCount, setWfhCount] = useState(0);
+  const [wfhLimit, setWfhLimit] = useState(2);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [shiftConfig, setShiftConfig] = useState<ShiftConfig | null>(null);
@@ -91,7 +96,11 @@ export default function CheckInOut() {
     if (!profile) return;
     try {
       const { data } = await client.get('/attendance/today');
-      setTodayRecord(data);
+      // Handle both { record: ... } and direct record response for resilience
+      const record = data?.record !== undefined ? data.record : (data?._id ? data : null);
+      setTodayRecord(record);
+      setWfhCount(data.wfh_count || 0);
+      setWfhLimit(data.wfh_limit || 2);
     } catch (error) {
       console.error('Error fetching attendance:', error);
     } finally {
@@ -129,6 +138,22 @@ export default function CheckInOut() {
       }
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to process attendance';
+      toast.error(errorMessage);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResumeBreak = async () => {
+    setActionLoading(true);
+    try {
+      const { data } = await client.post('/attendance/resume-break');
+      if (data?.success) {
+        toast.success(data.message);
+        fetchTodayAttendance();
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to resume break';
       toast.error(errorMessage);
     } finally {
       setActionLoading(false);
@@ -178,12 +203,32 @@ export default function CheckInOut() {
           </div>
 
           <div className="header-actions">
-            {profile?.wfh_enabled && (
-              <Card className={`work-mode-card ${workMode === 'wfh' ? 'active' : ''}`}
-                onClick={() => setWorkMode(prev => prev === 'office' ? 'wfh' : 'office')}>
+            {profile?.wfh_enabled && canCheckIn && (
+              <Card
+                className={`work-mode-card ${workMode === 'wfh' ? 'active' : ''} ${wfhCount >= wfhLimit ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={() => {
+                  if (wfhCount < wfhLimit) {
+                    setWorkMode(prev => prev === 'office' ? 'wfh' : 'office');
+                  } else {
+                    toast.error('Work From Home monthly limit reached');
+                  }
+                }}
+              >
                 <CardContent className="p-4 flex flex-col justify-center">
-                  <p className="text-xs font-semibold uppercase text-muted-foreground">Mode</p>
-                  <p className="text-lg font-bold">{workMode === 'wfh' ? 'Remote 🏠' : 'Office 🏢'}</p>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground">Work Mode</p>
+                    <Badge variant={wfhCount >= wfhLimit ? "destructive" : "outline"} className="text-[10px] h-4 px-1">
+                      {wfhLimit - wfhCount} Days Left
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-lg font-bold">
+                      {workMode === 'wfh' ? 'Work From Home 🏠' : 'Office Work 🏢'}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {wfhCount >= wfhLimit ? 'Monthly quota exhausted' : 'Click to toggle mode'}
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -216,7 +261,9 @@ export default function CheckInOut() {
                       {isComplete ? 'You are all set for today!' : 'Please check in from the registered office location.'}
                     </CardDescription>
                   </div>
-                  {todayRecord && <StatusBadge status={todayRecord.status} />}
+                  {todayRecord && (
+                    <StatusBadge status={todayRecord.is_on_break ? 'on_break' : todayRecord.status} />
+                  )}
                 </div>
               </CardHeader>
 
@@ -264,6 +311,25 @@ export default function CheckInOut() {
                     </div>
                   </Button>
                 </div>
+
+                {todayRecord?.is_on_break && (
+                  <div className="break-info-panel p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-lg space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Pause className="w-5 h-5 text-indigo-500" />
+                      <div>
+                        <p className="font-bold text-indigo-500">Timer Paused</p>
+                        <p className="text-xs text-muted-foreground">You are currently in mandatory break period (2:00 PM - 2:45 PM).</p>
+                      </div>
+                    </div>
+                    <Button
+                      className="w-full bg-indigo-500 hover:bg-indigo-600 text-white gap-2"
+                      onClick={handleResumeBreak}
+                      disabled={actionLoading}
+                    >
+                      <Play className="w-4 h-4" /> Resume Work Timer
+                    </Button>
+                  </div>
+                )}
 
                 {isComplete && (
                   <div className="success-callout">
