@@ -29,14 +29,7 @@ import { Button } from '@/components/ui/button';
 import { AttendanceCalendar } from '@/components/AttendanceCalendar';
 import '@/styles/History.css';
 
-interface AttendanceRecord {
-  _id: string;
-  date: string;
-  check_in: string | null;
-  check_out: string | null;
-  status: string;
-  distance_at_check_in: number | null;
-}
+import { AttendanceRecord } from '@/types/attendance';
 
 export default function History() {
   const { profile } = useAuth();

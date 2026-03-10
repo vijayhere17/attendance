@@ -22,13 +22,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-interface AttendanceRecord {
-    id: string;
-    date: string;
-    check_in: string | null;
-    check_out: string | null;
-    status: string;
-}
+import { AttendanceRecord } from '@/types/attendance';
 
 interface AttendanceCalendarProps {
     records: AttendanceRecord[];
@@ -117,7 +111,7 @@ export function AttendanceCalendar({ records, currentDate, onMonthChange }: Atte
                         const isTodayDate = isToday(day);
 
                         return (
-                            <TooltipProvider key={day.toISOString()}>
+                            <TooltipProvider key={record._id || day.toISOString()}>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <button
