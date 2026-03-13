@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Outfit", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
@@ -96,6 +97,14 @@ export default {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.7" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -103,8 +112,43 @@ export default {
         "pulse-subtle": "pulse-subtle 2s ease-in-out infinite",
         "slide-in": "slide-in 0.3s ease-out",
         "fade-in": "fade-in 0.2s ease-out",
+        float: "float 6s ease-in-out infinite",
+        "pulse-soft": "pulse-soft 3s ease-in-out infinite",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function ({ addUtilities }: any) {
+      addUtilities({
+        ".glass": {
+          background: "linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.4) 100%)",
+          "backdrop-filter": "blur(12px)",
+          "-webkit-backdrop-filter": "blur(12px)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          "box-shadow": "0 4px 24px 0 rgba(0, 0, 0, 0.4)",
+        },
+        ".glass-card": {
+          position: "relative",
+          overflow: "hidden",
+          transition: "all 0.3s ease-in-out",
+          background: "linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%)",
+          border: "1px solid rgba(255, 255, 255, 0.05)",
+          "&:hover": {
+            transform: "translateY(-4px)",
+            "border-color": "rgba(14, 165, 233, 0.3)",
+            "box-shadow": "0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(14, 165, 233, 0.1)",
+          }
+        },
+        ".text-gradient": {
+          backgroundClip: "text",
+          "-webkit-background-clip": "text",
+          color: "transparent",
+          backgroundImage: "linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to))",
+          "--tw-gradient-from": "#60A5FA",
+          "--tw-gradient-to": "#6366F1",
+        },
+      });
+    },
+  ],
 } satisfies Config;

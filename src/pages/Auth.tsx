@@ -67,35 +67,41 @@ export default function Auth() {
     <div className="auth-page-wrapper">
       <div className="auth-container">
         <div className="auth-branding">
-          <div className="logo-section">
-            <img src={logo} alt="Exotic Infotech" className="h-12 w-auto" />
-            <div>
-              <h1 className="text-2xl font-bold">Exotic Infotech</h1>
-              <p className="text-sm text-muted-foreground">Attendance Management System</p>
-            </div>
+          <div className="logo-section animate-float">
+            <img src={logo} alt="Exotic Infotech" className="h-14 w-auto drop-shadow-2xl" />
+            <h1 className="text-3xl font-bold tracking-tighter text-white">Radius Check</h1>
           </div>
 
-          <div className="space-y-6 mt-12">
+          <div className="space-y-6 mt-12 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 backdrop-blur-xl">
             <h2 className="hero-title">
-              Attendance tracking <br />
-              <span className="text-primary">simplified.</span>
+              Precision Attendance <br />
+              <span className="text-primary">Defined.</span>
             </h2>
             <p className="hero-subtitle">
-              A professional solution for managing employee presence with GPS verification and real-time reporting.
+              The industry standard for secure, GPS-verified workforce management. Effortless tracking, real-time insights.
             </p>
 
             <div className="feature-highlights">
-              <div className="feature-item">
-                <Shield className="w-6 h-6" />
-                <p className="font-bold text-sm">Secure</p>
-                <p className="text-xs text-muted-foreground">Enterprise-grade security</p>
+              <div className="feature-item glass-card">
+                <Shield className="w-8 h-8 text-primary" />
+                <p className="font-bold text-white">Enterprise Security</p>
+                <p className="text-xs text-muted-foreground">JWT & RBAC Protected</p>
               </div>
-              <div className="feature-item">
-                <CheckCircle2 className="w-6 h-6" />
-                <p className="font-bold text-sm">Accurate</p>
-                <p className="text-xs text-muted-foreground">Verified GPS location</p>
+              <div className="feature-item glass-card">
+                <CheckCircle2 className="w-8 h-8 text-primary" />
+                <p className="font-bold text-white">GPS Precision</p>
+                <p className="text-xs text-muted-foreground">Radius-locked verification</p>
               </div>
             </div>
+          </div>
+          
+          <div className="mt-8 relative h-64 rounded-3xl overflow-hidden border border-white/10 group">
+             <img 
+               src="/C:/Users/Manmeet_77/.gemini/antigravity/brain/4093e752-03dd-42ed-8b1b-fc5a9d8c2b57/professional_auth_hero_1773295950794.png" 
+               alt="Professional Hero" 
+               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+             />
+             <div className="absolute inset-0 bg-gradient-to-t from-[#020617] to-transparent opacity-60"></div>
           </div>
         </div>
 
@@ -106,7 +112,7 @@ export default function Auth() {
               <h1 className="text-2xl font-bold">Attendance System</h1>
             </div>
 
-            <Card className="auth-form-card">
+            <Card className="auth-form-card glass-card">
               <CardHeader className="auth-form-header">
                 <CardTitle className="text-2xl">Sign In</CardTitle>
                 <CardDescription>Enter your credentials to access your account</CardDescription>

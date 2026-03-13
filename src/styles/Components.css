@@ -81,6 +81,34 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
+.status-badge {
+  @apply px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all;
+}
+
+.status-present {
+  @apply bg-success/10 text-success border-success/20 shadow-[0_0_12px_rgba(16,185,129,0.1)];
+}
+
+.status-late {
+  @apply bg-warning/10 text-warning border-warning/20 shadow-[0_0_12px_rgba(245,158,11,0.1)];
+}
+
+.status-absent {
+  @apply bg-destructive/10 text-destructive border-destructive/20 shadow-[0_0_12px_rgba(239,68,68,0.1)];
+}
+
+.card-premium {
+  @apply rounded-[1.5rem] border-white/10;
+}
+
+.input-premium {
+  @apply rounded-xl border-white/10 bg-white/5 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all;
+}
+
+.badge-premium {
+  @apply px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-muted-foreground text-xs font-semibold;
+}
+
 .achievement-star-marker {
     position: absolute;
     top: -0.25rem;

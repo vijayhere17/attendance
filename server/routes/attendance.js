@@ -377,8 +377,20 @@ router.get('/today', protect, async (req, res) => {
 });
 
 router.get('/history', protect, async (req, res) => {
-    const attendance = await Attendance.find({ user: req.user._id }).sort({ date: -1 });
-    res.json(attendance);
+    const { startDate, endDate } = req.query;
+    let query = { user: req.user._id };
+
+    if (startDate && endDate) {
+        query.date = { $gte: startDate, $lte: endDate };
+    }
+
+    try {
+        const attendance = await Attendance.find(query).sort({ date: -1 });
+        res.json(attendance);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
 });
 
 router.get('/leaderboard', protect, async (req, res) => {

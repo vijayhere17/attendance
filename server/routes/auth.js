@@ -46,24 +46,79 @@ router.get('/profile', protect, async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
+        const today = new Date();
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+
+        const attendanceThisMonth = await Attendance.find({
+            user: user._id,
+            date: { $gte: startOfMonth, $lte: endOfMonth }
+        });
+
+        const stats = {
+            late: attendanceThisMonth.filter(a => a.status === 'late' || a.is_late).length,
+            wfh: attendanceThisMonth.filter(a => a.work_mode === 'wfh').length,
+            leave: 0 // TODO: Implement leave tracking if applicable, or count absences
+        };
+
         res.json({
             _id: user._id,
             full_name: user.full_name,
             email: user.email,
             role: user.role,
             batch: user.batch,
-            must_change_password: user.must_change_password, // NEW: Include first-login flag
+            must_change_password: user.must_change_password,
+            avatar_url: user.avatar_url,
+            monthly_limits: user.monthly_limits,
+            month_stats: stats,
             shift_start: user.shift_start,
             shift_end: user.shift_end,
             current_streak: user.current_streak,
             best_streak: user.best_streak,
             total_attendance: user.total_attendance,
             notification_preferences: user.notification_preferences,
+            phone_number: user.phone_number,
         });
     } else {
         res.status(404).json({ message: 'User not found' });
     }
 });
+
+router.put('/profile', protect, async (req, res) => {
+    const { full_name, phone_number, avatar_url } = req.body;
+
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (full_name) user.full_name = full_name;
+        if (phone_number !== undefined) user.phone_number = phone_number;
+        if (avatar_url !== undefined) user.avatar_url = avatar_url;
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Profile updated successfully',
+            user: {
+                _id: user._id,
+                full_name: user.full_name,
+                email: user.email,
+                avatar_url: user.avatar_url,
+                phone_number: user.phone_number,
+            },
+        });
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// Import Attendance for stats calculation
+import Attendance from '../models/Attendance.js';
 
 router.post('/change-password', protect, async (req, res) => {
     const { currentPassword, newPassword } = req.body;

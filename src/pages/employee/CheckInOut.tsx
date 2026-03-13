@@ -28,6 +28,7 @@ import { format, differenceInMinutes, differenceInHours } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
 import { StreakCounter } from '@/components/StreakCounter';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import '@/styles/CheckInOut.css';
 
 interface TodayAttendance {
@@ -166,8 +167,19 @@ export default function CheckInOut() {
 
   const getWorkDuration = () => {
     if (!todayRecord?.check_in) return null;
-    const endTime = todayRecord.check_out ? new Date(todayRecord.check_out) : new Date();
+    let endTime = todayRecord.check_out ? new Date(todayRecord.check_out) : new Date();
     const startTime = new Date(todayRecord.check_in);
+
+    // Timer Fix: If on break, cap endTime at the break start (assuming 2:00 PM for now as per user)
+    // In a real system, we'd use the actual break start time from config.
+    if (todayRecord.is_on_break) {
+      const breakStart = new Date(endTime);
+      breakStart.setHours(14, 0, 0, 0);
+      if (endTime > breakStart) {
+        endTime = breakStart;
+      }
+    }
+
     const hours = differenceInHours(endTime, startTime);
     const mins = differenceInMinutes(endTime, startTime) % 60;
     return { hours, mins };
@@ -178,165 +190,205 @@ export default function CheckInOut() {
     const [endH, endM] = (profile.shift_end || '18:00:00').split(':').map(Number);
     const [startH, startM] = (profile.shift_start || '09:00:00').split(':').map(Number);
     const totalMinutes = (endH - startH) * 60 + (endM - startM);
-    const checkIn = new Date(todayRecord.check_in);
-    const now = todayRecord.check_out ? new Date(todayRecord.check_out) : new Date();
-    const worked = differenceInMinutes(now, checkIn);
+    
+    // Use the same paused logic for progress
+    const duration = getWorkDuration();
+    if (!duration) return 0;
+    const worked = duration.hours * 60 + duration.mins;
     return Math.min(100, Math.round((worked / totalMinutes) * 100));
   };
 
   const workDuration = getWorkDuration();
   const shiftProgress = getShiftProgress();
 
+  // Monthly Limits from profile
+  const limits = (profile as any)?.monthly_limits || { leave: 2, late: 3, wfh: 2 };
+  const stats = (profile as any)?.month_stats || { leave: 0, late: 0, wfh: 0 };
+
   return (
     <Layout>
       <div className="check-in-container">
         <div className="check-in-header">
           <div className="header-user-info">
-            <p className="greeting-text">
-              Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}
+            <p className="greeting-text font-display">
+              Terminal Operational — {new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'}
             </p>
-            <h1 className="user-full-name">{profile?.full_name}</h1>
-            <p className="current-date">
-              <Calendar className="w-5 h-5" />
-              {format(new Date(), 'EEEE, MMMM d, yyyy')}
-            </p>
+            <div className="flex items-center gap-4">
+              <Avatar className="w-12 h-12 border-2 border-primary/20">
+                <AvatarImage src={(profile as any)?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email}`} />
+                <AvatarFallback className="bg-primary/20 text-primary font-bold">
+                  {(profile?.full_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="user-full-name font-display text-gradient">Agent {profile?.full_name?.split(' ')[0]}</h1>
+                <p className="current-date">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  {format(new Date(), 'EEEE, dd MMMM yyyy').toUpperCase()}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="header-actions">
-            {profile?.wfh_enabled && canCheckIn && (
-              <Card
-                className={`work-mode-card ${workMode === 'wfh' ? 'active' : ''} ${wfhCount >= wfhLimit ? 'opacity-50 cursor-not-allowed' : ''}`}
-                onClick={() => {
-                  if (wfhCount < wfhLimit) {
-                    setWorkMode(prev => prev === 'office' ? 'wfh' : 'office');
-                  } else {
-                    toast.error('Work From Home monthly limit reached');
-                  }
-                }}
-              >
-                <CardContent className="p-4 flex flex-col justify-center">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground">Work Mode</p>
-                    <Badge variant={wfhCount >= wfhLimit ? "destructive" : "outline"} className="text-[10px] h-4 px-1">
-                      {wfhLimit - wfhCount} Days Left
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-bold">
-                      {workMode === 'wfh' ? 'Work From Home 🏠' : 'Office Work 🏢'}
-                    </p>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    {wfhCount >= wfhLimit ? 'Monthly quota exhausted' : 'Click to toggle mode'}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card className="time-card">
-              <CardContent className="p-4 flex items-center justify-between gap-4">
+            <div className="time-card glass-card">
+              <div className="flex items-center justify-between gap-12">
                 <div>
-                  <p className="text-xs font-semibold uppercase text-muted-foreground">Current Time</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-2">Standard Time</p>
                   <div className="live-clock-text">
                     <LiveClock showSeconds />
                   </div>
                 </div>
-                <Timer className="w-6 h-6 text-primary" />
-              </CardContent>
-            </Card>
+                <div className="w-16 h-16 rounded-[1.5rem] bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-inner">
+                  <Timer className="w-8 h-8 animate-pulse" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="check-in-main-grid">
           <div className="action-column">
-            <Card className={`main-action-card ${isComplete ? 'complete' : ''}`}>
-              <CardHeader>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Card className="glass-card p-6 border-white/5 bg-white/2">
+                <div className="flex justify-between items-start mb-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">WFH Protocol</p>
+                  <Badge variant={stats.wfh >= limits.wfh ? "destructive" : "secondary"} className="text-[10px] py-0">
+                    {Math.max(0, limits.wfh - stats.wfh)} REMAINING
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-black text-white">{stats.wfh}/{limits.wfh}</h3>
+                  <div className={`p-2 rounded-lg ${workMode === 'wfh' ? 'bg-primary/20 text-primary' : 'bg-white/5 text-muted-foreground'}`}>
+                    <Navigation className="w-5 h-5 cursor-pointer" onClick={() => {
+                        if (canCheckIn && stats.wfh < limits.wfh) {
+                            setWorkMode(prev => prev === 'office' ? 'wfh' : 'office');
+                        } else if (canCheckIn) {
+                            toast.error('WFH monthly limit reached');
+                        }
+                    }} />
+                  </div>
+                </div>
+                <Progress value={(stats.wfh / limits.wfh) * 100} className="h-1 mt-4" />
+              </Card>
+
+              <Card className="glass-card p-6 border-white/5 bg-white/2">
+                <div className="flex justify-between items-start mb-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Late Tolerance</p>
+                  <Badge variant={stats.late >= limits.late ? "destructive" : "secondary"} className="text-[10px] py-0">
+                    {Math.max(0, limits.late - stats.late)} REMAINING
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-black text-white">{stats.late}/{limits.late}</h3>
+                  <div className="p-2 rounded-lg bg-white/5 text-orange-500">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                </div>
+                <Progress value={(stats.late / limits.late) * 100} className="h-1 mt-4" />
+              </Card>
+
+              <Card className="glass-card p-6 border-white/5 bg-white/2">
+                <div className="flex justify-between items-start mb-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Leave Quota</p>
+                  <Badge variant={stats.leave >= limits.leave ? "destructive" : "secondary"} className="text-[10px] py-0">
+                    {Math.max(0, limits.leave - stats.leave)} REMAINING
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-black text-white">{stats.leave}/{limits.leave}</h3>
+                  <div className="p-2 rounded-lg bg-white/5 text-purple-500">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                </div>
+                <Progress value={(stats.leave / limits.leave) * 100} className="h-1 mt-4" />
+              </Card>
+            </div>
+
+            <Card className={`main-action-card glass-card ${isComplete ? 'complete' : ''}`}>
+              <CardHeader className="pb-10">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-2xl flex items-center gap-2">
-                      <Navigation className="w-6 h-6 text-primary" />
-                      {isComplete ? 'Attendance Recorded' : canCheckOut ? 'Active Shift' : 'Begin Workday'}
+                    <CardTitle className="text-4xl font-black tracking-tighter flex items-center gap-4 text-white">
+                      <Fingerprint className="w-10 h-10 text-primary" />
+                      {isComplete ? 'Shift Logged' : canCheckOut ? 'Active Duty' : 'Command Center'}
                     </CardTitle>
-                    <CardDescription>
-                      {isComplete ? 'You are all set for today!' : 'Please check in from the registered office location.'}
+                    <CardDescription className="text-muted-foreground font-medium mt-3 text-lg">
+                      {isComplete ? 'Your mission logs have been saved for the current cycle.' : 'Initialize biometric authentication to begin your shift.'}
                     </CardDescription>
                   </div>
                   {todayRecord && (
-                    <StatusBadge status={todayRecord.is_on_break ? 'on_break' : todayRecord.status} />
+                    <StatusBadge status={todayRecord.is_on_break ? 'on_break' : todayRecord.status} size="lg" />
                   )}
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-10">
                 {geoError && (
-                  <div className="flex items-center gap-3 p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20">
-                    <AlertCircle className="w-5 h-5" />
-                    <p className="text-sm font-medium">{geoError}</p>
+                  <div className="flex items-center gap-4 p-8 bg-destructive/5 text-destructive rounded-[2rem] border border-destructive/20">
+                    <AlertCircle className="w-6 h-6 shrink-0" />
+                    <div>
+                      <p className="font-black uppercase tracking-widest text-xs mb-1">Navigation Error</p>
+                      <p className="font-medium opacity-80">{geoError}</p>
+                    </div>
                   </div>
                 )}
 
                 <div className="action-buttons-grid">
                   <Button
-                    size="lg"
                     className="check-in-button"
                     disabled={!canCheckIn || actionLoading || geoLoading}
                     onClick={() => handleAttendance('check_in')}
                   >
                     {actionLoading && !todayRecord?.check_in ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
+                      <Loader2 className="w-10 h-10 animate-spin" />
                     ) : (
-                      <LogIn className="w-6 h-6" />
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-primary blur-2xl opacity-50 animate-pulse"></div>
+                        <LogIn className="w-12 h-12 relative z-10" />
+                      </div>
                     )}
-                    <div className="text-center">
-                      <p className="text-lg font-bold">Check In</p>
-                      <p className="text-xs opacity-80">Start tracking time</p>
+                    <div className="text-center relative z-10">
+                      <p className="text-2xl font-black uppercase tracking-tighter">Check In</p>
+                      <p className="text-[10px] font-bold opacity-70 tracking-widest mt-1">START TRACKING</p>
                     </div>
                   </Button>
 
                   <Button
-                    size="lg"
-                    className="check-out-button"
+                    className="check-out-button group"
                     disabled={!canCheckOut || actionLoading || geoLoading}
                     onClick={() => handleAttendance('check_out')}
-                    variant="outline"
                   >
                     {actionLoading && canCheckOut ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
+                      <Loader2 className="w-10 h-10 animate-spin" />
                     ) : (
-                      <LogOut className="w-6 h-6 text-primary" />
+                      <LogOut className="w-12 h-12 text-primary group-hover:rotate-12 transition-transform" />
                     )}
                     <div className="text-center">
-                      <p className="text-lg font-bold text-primary">Check Out</p>
-                      <p className="text-xs text-muted-foreground">Complete shift</p>
+                      <p className="text-2xl font-black uppercase tracking-tighter text-white">Check Out</p>
+                      <p className="text-[10px] font-bold text-muted-foreground tracking-widest mt-1">STOP TRACKING</p>
                     </div>
                   </Button>
                 </div>
 
                 {todayRecord?.is_on_break && (
-                  <div className="break-info-panel p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-lg space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Pause className="w-5 h-5 text-indigo-500" />
-                      <div>
-                        <p className="font-bold text-indigo-500">Timer Paused</p>
-                        <p className="text-xs text-muted-foreground">You are currently in mandatory break period (2:00 PM - 2:45 PM).</p>
+                  <div className="break-info-panel">
+                    <div className="flex items-center gap-6">
+                      <div className="w-16 h-16 rounded-[1.5rem] bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20">
+                        <Pause className="w-8 h-8" />
                       </div>
-                    </div>
-                    <Button
-                      className="w-full bg-indigo-500 hover:bg-indigo-600 text-white gap-2"
-                      onClick={handleResumeBreak}
-                      disabled={actionLoading}
-                    >
-                      <Play className="w-4 h-4" /> Resume Work Timer
-                    </Button>
-                  </div>
-                )}
-
-                {isComplete && (
-                  <div className="success-callout">
-                    <CheckCircle2 className="w-6 h-6 text-success" />
-                    <div>
-                      <p className="font-bold text-foreground">You've checked out!</p>
-                      <p className="text-sm text-muted-foreground">Rest well and see you tomorrow.</p>
+                      <div className="flex-1">
+                        <p className="text-xl font-black text-white uppercase tracking-tighter">Standby Mode</p>
+                        <p className="text-sm text-muted-foreground font-medium">Standard break protocol active. System precision monitoring suspended.</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        className="h-14 px-8 rounded-2xl bg-indigo-500 text-white hover:bg-indigo-600 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-500/20"
+                        onClick={handleResumeBreak}
+                        disabled={actionLoading}
+                      >
+                        Resume Protocol
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -344,47 +396,60 @@ export default function CheckInOut() {
             </Card>
 
             <div className="activity-summary-grid">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Fingerprint className="w-4 h-4" /> Activity
+              <Card className="summary-card-premium glass-card overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000"></div>
+                <CardHeader className="pb-6">
+                  <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-3">
+                    <Fingerprint className="w-4 h-4 text-primary" /> Shift Timeline
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Check-in</span>
-                    <span className="font-bold font-mono">
-                      {todayRecord?.check_in ? format(new Date(todayRecord.check_in), 'hh:mm a') : '--:--'}
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-5 bg-white/5 rounded-[1.5rem] border border-white/5 transition-colors hover:bg-white/10">
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Entry Gate</span>
+                    <span className="text-xl font-black font-mono text-white">
+                      {todayRecord?.check_in ? format(new Date(todayRecord.check_in), 'hh:mm a') : 'LOCKED'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Check-out</span>
-                    <span className="font-bold font-mono">
-                      {todayRecord?.check_out ? format(new Date(todayRecord.check_out), 'hh:mm a') : '--:--'}
+                  <div className="flex items-center justify-between p-5 bg-white/5 rounded-[1.5rem] border border-white/5 transition-colors hover:bg-white/10">
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Exit Gate</span>
+                    <span className="text-xl font-black font-mono text-white">
+                      {todayRecord?.check_out ? format(new Date(todayRecord.check_out), 'hh:mm a') : 'ACTIVE'}
                     </span>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Clock className="w-4 h-4" /> Work Duration
+              <Card className="summary-card-premium glass-card group overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000"></div>
+                <CardHeader className="pb-6">
+                  <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-3">
+                    <Clock className="w-4 h-4 text-primary" /> Operational Status
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {workDuration ? (
-                    <div className="progress-section">
-                      <div className="progress-header">
+                    <div className="space-y-8">
+                      <div className="flex items-end justify-between">
                         <p className="duration-display">
-                          {workDuration.hours}<span className="duration-suffix">hr</span> {workDuration.mins}<span className="duration-suffix">min</span>
+                          {workDuration.hours}<span className="duration-suffix">h</span> {workDuration.mins}<span className="duration-suffix">m</span>
                         </p>
-                        <p className="text-lg font-bold text-primary">{shiftProgress}%</p>
+                        <div className="text-right">
+                          <p className="text-3xl font-black text-primary tracking-tighter">{shiftProgress}%</p>
+                          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Completed</p>
+                        </div>
                       </div>
-                      <Progress value={shiftProgress} className="h-2" />
+                      <div className="h-4 bg-white/5 rounded-full p-1 border border-white/5 shadow-inner">
+                        <div
+                          className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(14,165,233,0.4)]"
+                          style={{ width: `${shiftProgress}%` }}
+                        />
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground py-4 text-center">Start shift to track duration</p>
+                    <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground/40 italic">
+                      <Timer className="w-12 h-12 mb-4 opacity-10 animate-spin-slow" />
+                      <p className="text-sm font-bold uppercase tracking-widest">Awaiting Manifest</p>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -394,38 +459,39 @@ export default function CheckInOut() {
           <div className="sidebar-column">
             <StreakCounter streak={streak} bestStreak={profile?.best_streak || streak} />
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2 text-primary">
-                  <Clock className="w-4 h-4" /> Shift Info
+            <Card className="glass-card overflow-hidden">
+              <CardHeader className="border-b border-white/5 bg-white/2 pb-6">
+                <CardTitle className="text-xs font-black uppercase tracking-[0.2em] flex items-center gap-3 text-primary">
+                  <Clock className="w-4 h-4" /> Duty Manifest
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="pt-8 space-y-6">
                 {shiftLoading ? (
-                  <div className="flex justify-center p-4"><Loader2 className="w-5 h-5 animate-spin" /></div>
+                  <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
                 ) : shiftConfig ? (
                   <>
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold text-muted-foreground uppercase">Shift Times</p>
-                      <p className="font-bold text-lg">{shiftConfig.formatted.shift_start} — {shiftConfig.formatted.shift_end}</p>
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Operational Window</p>
+                      <p className="font-black text-2xl tracking-tighter text-white">{shiftConfig.formatted.shift_start} — {shiftConfig.formatted.shift_end}</p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold text-muted-foreground uppercase">Role/Batch</p>
-                      <div className="flex gap-2 mt-1">
-                        <Badge variant="secondary" className="capitalize">{profile?.role}</Badge>
-                        {profile?.batch && <Badge variant="outline">{profile.batch}</Badge>}
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Unit Classification</p>
+                      <div className="flex gap-2">
+                        <Badge variant="secondary" className="font-black px-4 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">{profile?.role?.toUpperCase()}</Badge>
+                        {profile?.batch && <Badge variant="outline" className="font-black px-4 py-1.5 rounded-lg border-white/10 uppercase">{profile.batch}</Badge>}
                       </div>
                     </div>
                   </>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No shift assigned yet.</p>
+                  <p className="text-sm font-bold text-muted-foreground/50 italic py-4">No directive assigned for this cycle.</p>
                 )}
-                <Separator />
-                <Button variant="ghost" className="w-full justify-start gap-2" asChild>
-                  <a href="/employee/history">
-                    Full History <Clock className="w-4 h-4 ml-auto" />
-                  </a>
-                </Button>
+                <div className="pt-4">
+                  <Button variant="ghost" className="w-full h-14 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest text-[10px] justify-between group" asChild>
+                    <a href="/employee/history">
+                      Access Logs <Clock className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                    </a>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>

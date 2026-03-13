@@ -84,6 +84,10 @@ const attendanceSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    checkout_reminder_sent: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
 });

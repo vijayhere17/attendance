@@ -1,9 +1,17 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const baseURL = import.meta.env.VITE_API_URL || '/api';
+
+if (import.meta.env.PROD) {
+    if (!import.meta.env.VITE_API_URL) {
+        console.warn('⚠️ Warning: VITE_API_URL is not defined. Falling back to default: ' + baseURL);
+    }
+    console.log(`🚀 API Client initialized with URL: ${baseURL}`);
+}
 
 const client = axios.create({
-    baseURL: API_URL,
+    baseURL,
+    withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
     },

@@ -216,7 +216,8 @@ router.post('/users', protect, admin, async (req, res) => {
             shift_start,
             shift_end,
             phone_number: phone_number || '',
-            wfh_enabled: req.body.wfh_enabled || false, // [NEW]
+            wfh_enabled: req.body.wfh_enabled || false,
+            monthly_limits: req.body.monthly_limits || { leave: 2, late: 3, wfh: 2 },
             studentId: studentId || '',
             must_change_password: true,
             temp_password_created_at: new Date(),
@@ -237,6 +238,7 @@ router.post('/users', protect, admin, async (req, res) => {
                 shift_end: user.shift_end,
                 phone_number: user.phone_number,
                 studentId: user.studentId,
+                monthly_limits: user.monthly_limits,
             },
         });
     } catch (error) {
@@ -246,7 +248,7 @@ router.post('/users', protect, admin, async (req, res) => {
 });
 
 router.put('/users/:id', protect, admin, async (req, res) => {
-    const { full_name, role, batch, studentId } = req.body;
+    const { full_name, role, batch, studentId, monthly_limits } = req.body;
 
     try {
         const user = await User.findById(req.params.id);
@@ -274,12 +276,20 @@ router.put('/users/:id', protect, admin, async (req, res) => {
             user.shift_end = shift_end;
         }
 
+        if (monthly_limits) {
+            user.monthly_limits = { ...user.monthly_limits.toObject(), ...monthly_limits };
+        }
+
         if (req.body.wfh_enabled !== undefined) {
             user.wfh_enabled = req.body.wfh_enabled;
         }
 
         if (req.body.phone_number !== undefined) {
             user.phone_number = req.body.phone_number;
+        }
+
+        if (req.body.avatar_url !== undefined) {
+            user.avatar_url = req.body.avatar_url;
         }
 
         await user.save();
@@ -297,7 +307,8 @@ router.put('/users/:id', protect, admin, async (req, res) => {
                 shift_end: user.shift_end,
                 phone_number: user.phone_number,
                 studentId: user.studentId,
-                telegram_link: getBotInfo() ? `https://t.me/${getBotInfo().username}?start=${user.studentId}` : null,
+                monthly_limits: user.monthly_limits,
+                avatar_url: user.avatar_url,
             },
         });
     } catch (error) {

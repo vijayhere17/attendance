@@ -1,211 +1,164 @@
-/* Check-In/Out Page Styles */
-
 .check-in-container {
-    max-width: 72rem;
-    /* max-w-6xl */
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+  @apply space-y-10 animate-fade-in max-w-7xl mx-auto;
 }
 
 .check-in-header {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-@media (min-width: 1024px) {
-    .check-in-header {
-        flex-direction: row;
-        align-items: flex-end;
-        justify-content: space-between;
-    }
-}
-
-.header-user-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  @apply flex flex-col lg:flex-row lg:items-end justify-between gap-12 mb-16;
 }
 
 .greeting-text {
-    color: var(--primary);
-    font-weight: 500;
+  @apply text-primary font-black uppercase tracking-[0.2em] text-[10px] mb-2 opacity-80;
 }
 
 .user-full-name {
-    font-size: 1.875rem;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    color: var(--foreground);
+  @apply text-5xl font-black tracking-tighter text-white mb-3;
+  text-shadow: 0 0 30px rgba(14, 165, 233, 0.3);
 }
 
 .current-date {
-    color: var(--muted-foreground);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.125rem;
+  @apply flex items-center gap-3 text-muted-foreground font-bold font-mono text-xs uppercase tracking-widest;
 }
 
 .header-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-@media (min-width: 640px) {
-    .header-actions {
-        flex-direction: row;
-    }
+  @apply flex flex-col sm:flex-row gap-6;
 }
 
 .work-mode-card {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--border);
-    transition: all 0.2s;
-    cursor: pointer;
+  @apply p-8 rounded-[2.5rem] border-white/5 cursor-pointer transition-all duration-500 relative overflow-hidden;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
 }
 
-.work-mode-card:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+.work-mode-card::after {
+  content: '';
+  @apply absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none;
+  background: radial-gradient(circle at center, rgba(14, 165, 233, 0.15), transparent 70%);
 }
 
 .work-mode-card.active {
-    background-color: hsla(var(--primary), 0.05);
-    border-color: hsla(var(--primary), 0.2);
+  @apply border-primary/40 bg-primary/5 scale-[1.02];
+  box-shadow: 0 0 50px rgba(14, 165, 233, 0.1);
+}
+
+.work-mode-card.active::after {
+  @apply opacity-100;
 }
 
 .time-card {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--border);
-    background-color: var(--card);
-    min-width: 200px;
+  @apply p-8 rounded-[2.5rem] border-white/10 shadow-2xl min-w-[300px];
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(30, 41, 59, 0.8) 100%);
 }
 
 .live-clock-text {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--foreground);
-    font-family: monospace;
+  @apply text-4xl font-black font-mono tracking-tighter text-white;
+  filter: drop-shadow(0 0 10px rgba(14, 165, 233, 0.5));
 }
 
-/* Action Area */
 .check-in-main-grid {
-    display: grid;
-    gap: 2rem;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-@media (min-width: 1024px) {
-    .check-in-main-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+  @apply grid grid-cols-1 lg:grid-cols-12 gap-12;
 }
 
 .action-column {
-    grid-column: span 2 / span 2;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+  @apply lg:col-span-8 space-y-12;
 }
 
 .main-action-card {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    transition: all 0.3s;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  @apply p-6 rounded-[3rem] border-white/5 relative overflow-hidden;
+  @apply shadow-[0_60px_100px_-20px_rgba(0,0,0,0.7)];
 }
 
 .main-action-card.complete {
-    background-color: hsla(142, 70%, 45%, 0.05);
-    border-color: hsla(142, 70%, 45%, 0.2);
+  @apply border-success/30;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, transparent 100%);
 }
 
 .action-buttons-grid {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-@media (min-width: 640px) {
-    .action-buttons-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-10 py-4;
 }
 
 .check-in-button {
-    height: auto;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    border-radius: 0.75rem;
-    transition: all 0.2s;
+  @apply h-48 rounded-[2.5rem] bg-primary relative overflow-hidden transition-all duration-500 flex flex-col items-center justify-center gap-4;
+  @apply border-4 border-white/10 shadow-[0_20px_50px_rgba(14,165,233,0.3)];
+}
+
+.check-in-button:not(:disabled):hover {
+  @apply -translate-y-2 scale-[1.02];
+  @apply shadow-[0_30px_70px_rgba(14,165,233,0.5)];
+}
+
+.check-in-button::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 transition-opacity;
+}
+
+.check-in-button:hover::before {
+  @apply opacity-100;
 }
 
 .check-out-button {
-    height: auto;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    border-radius: 0.75rem;
-    transition: all 0.2s;
-    background-color: var(--card);
-    border: 1px solid var(--border);
+  @apply h-48 rounded-[2.5rem] bg-white/5 border-4 border-white/10 relative overflow-hidden transition-all duration-500 flex flex-col items-center justify-center gap-4;
+}
+
+.check-out-button:not(:disabled):hover {
+  @apply -translate-y-2 scale-[1.02] border-primary/40 bg-white/10;
+  @apply shadow-[0_30px_70px_rgba(0,0,0,0.4)];
+}
+
+.break-info-panel {
+  @apply p-8 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/20 backdrop-blur-3xl;
 }
 
 .success-callout {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    background-color: hsla(142, 70%, 45%, 0.1);
-    border: 1px solid hsla(142, 70%, 45%, 0.2);
+  @apply flex items-center gap-6 p-8 rounded-[2.5rem] bg-success/5 border border-success/20;
 }
 
 .activity-summary-grid {
-    display: grid;
-    gap: 1.5rem;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-8;
 }
 
-@media (min-width: 640px) {
-    .activity-summary-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-.progress-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.progress-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
+.summary-card-premium {
+  @apply p-8 rounded-[2.5rem] border-white/5 shadow-xl;
 }
 
 .duration-display {
-    font-size: 1.875rem;
-    font-weight: 700;
+  @apply text-5xl font-black text-white tracking-tighter;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.1));
 }
 
 .duration-suffix {
-    font-size: 0.875rem;
-    font-weight: 400;
-    color: var(--muted-foreground);
-    margin-left: 0.25rem;
+  @apply text-sm font-bold text-primary ml-1 uppercase;
 }
 
 .sidebar-column {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+  @apply lg:col-span-4 space-y-12;
+}
+
+.shift-info-card {
+  @apply p-8 rounded-[2.5rem] bg-gradient-to-br from-white/5 to-transparent border-white/5;
+}
+
+.streak-card-premium {
+  @apply p-10 rounded-[3rem] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white shadow-2xl overflow-hidden relative;
+}
+
+.streak-card-premium::after {
+  content: '';
+  @apply absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; filter: blur(20px); }
+  50% { opacity: 0.8; filter: blur(30px); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 10s linear infinite;
+}
+
+.glowing-bg {
+  animation: pulse-glow 3s ease-in-out infinite;
 }

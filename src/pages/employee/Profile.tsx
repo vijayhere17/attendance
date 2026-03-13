@@ -5,7 +5,6 @@ import { useAchievements } from '@/hooks/useAchievements';
 import { AchievementBadge } from '@/components/AchievementBadge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,20 +18,53 @@ import {
     Trophy,
     Flame,
     Clock,
-    CheckCircle2
+    CheckCircle2,
+    Shield,
+    Settings,
+    Save
 } from 'lucide-react';
 import { format } from 'date-fns';
 import client from '@/api/client';
+import { StatusBadge } from '@/components/StatusBadge';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import '@/styles/Profile.css';
 
 export default function Profile() {
     const { user, profile } = useAuth();
     const { data: achievements, isLoading: loadingAchievements } = useAchievements();
     const [uploading, setUploading] = useState(false);
+    const [updating, setUpdating] = useState(false);
+    const [editForm, setEditForm] = useState({
+        full_name: profile?.full_name || '',
+        phone_number: (profile as any)?.phone_number || '',
+        avatar_url: (profile as any)?.avatar_url || ''
+    });
+
+    useEffect(() => {
+        if (profile) {
+            setEditForm({
+                full_name: profile.full_name || '',
+                phone_number: (profile as any).phone_number || '',
+                avatar_url: (profile as any).avatar_url || ''
+            });
+        }
+    }, [profile]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [activities, setActivities] = useState<any[]>([]);
     const [loadingActivity, setLoadingActivity] = useState(false);
+    const [profileViewMode, setProfileViewMode] = useState(false);
 
     useEffect(() => {
         const fetchActivity = async () => {
@@ -55,6 +87,31 @@ export default function Profile() {
 
     const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         toast.info("Avatar upload is currently disabled during migration.");
+    };
+
+    const handleRandomAvatar = async () => {
+        const randomSeed = Math.random().toString(36).substring(7);
+        const newAvatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}`;
+        try {
+            await client.put('/auth/profile', { avatar_url: newAvatarUrl });
+            toast.success('Random avatar generated!');
+            window.location.reload();
+        } catch (err: any) {
+            toast.error('Failed to update avatar');
+        }
+    };
+
+    const handleUpdateProfile = async () => {
+        setUpdating(true);
+        try {
+            await client.put('/auth/profile', editForm);
+            toast.success('Profile updated successfully');
+            window.location.reload();
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Failed to update profile');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const stats = [
@@ -86,199 +143,323 @@ export default function Profile() {
 
     return (
         <Layout>
-            <div className="profile-container">
-                <div className="profile-header-card">
-                    <div className="profile-banner" />
-                    <div className="profile-avatar-wrapper">
+            <div className="profile-container space-y-10 p-4 md:p-8">
+                <div className="glass-card rounded-[3rem] border-white/5 overflow-hidden shadow-2xl">
+                    <div className="h-48 md:h-64 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent relative">
+                        <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
+                        <div className="absolute top-8 right-8">
+                            <Badge className="bg-success/10 text-success border border-success/20 px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px]">
+                                Verified Operative
+                            </Badge>
+                        </div>
+                    </div>
+
+                    <div className="px-8 pb-12 -mt-16 md:-mt-24 relative flex flex-col md:flex-row items-end gap-8">
                         <div className="relative group">
-                            <Avatar className="profile-avatar">
-                                <AvatarImage src={(profile as any)?.avatar_url} className="object-cover" />
-                                <AvatarFallback>
-                                    {getInitials(profile?.full_name || '')}
-                                </AvatarFallback>
-                            </Avatar>
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full shadow-lg hover:scale-110 transition-transform"
-                                title="Change Avatar"
-                            >
-                                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-                            </button>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handleAvatarUpload}
-                            />
-                        </div>
-
-                        <div className="profile-info">
-                            <h1 className="profile-name">{profile?.full_name}</h1>
-                            <div className="profile-role-badge">
-                                <Badge variant="secondary" className="gap-1.5 font-medium px-3 py-1">
-                                    <Briefcase className="w-3.5 h-3.5" />
-                                    {profile?.role?.toUpperCase()}
-                                </Badge>
-                                <Badge variant="outline" className="text-success border-success/30 bg-success/5 px-3 py-1">
-                                    <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                                    Active
-                                </Badge>
+                            <div className="w-32 h-32 md:w-48 md:h-48 rounded-[2.5rem] border-[6px] border-[#020617] p-1 bg-gradient-to-tr from-primary to-blue-600 shadow-2xl relative overflow-hidden">
+                                <Avatar className="w-full h-full rounded-[2rem]">
+                                    <AvatarImage src={(profile as any)?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email}`} className="object-cover" />
+                                    <AvatarFallback className="bg-white/10 text-white text-4xl font-black">
+                                        {getInitials(profile?.full_name || '')}
+                                    </AvatarFallback>
+                                </Avatar>
                             </div>
-                            <p className="text-muted-foreground flex items-center gap-2 mt-2">
-                                <Mail className="w-4 h-4" /> {profile?.email}
-                            </p>
+                            <div className="absolute -bottom-2 -right-2 flex gap-2">
+                                <button
+                                    onClick={handleRandomAvatar}
+                                    className="p-3 bg-white text-black rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-[#020617] group"
+                                    title="Generate Random Avatar"
+                                >
+                                    <Flame className="w-4 h-4 group-hover:animate-pulse" />
+                                </button>
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="p-3 bg-primary text-white rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-[#020617]"
+                                    title="Upload Photo"
+                                >
+                                    <Camera className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarUpload} />
                         </div>
 
-                        <div className="flex gap-2">
-                            <Button variant="outline">Edit Profile</Button>
+                        <div className="flex-1 pb-4">
+                            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2">{profile?.full_name}</h1>
+                            <div className="flex flex-wrap gap-4 items-center">
+                                <Badge variant="outline" className="gap-2 border-white/10 bg-white/5 text-muted-foreground py-1.5 px-4 rounded-xl font-bold">
+                                    <Mail className="w-3.5 h-3.5" />
+                                    {profile?.email}
+                                </Badge>
+                                <Badge variant="outline" className="gap-2 border-white/10 bg-white/5 text-muted-foreground py-1.5 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px]">
+                                    <Briefcase className="w-3.5 h-3.5" />
+                                    {profile?.role}
+                                </Badge>
+                                <div className="h-4 w-px bg-white/10 mx-2" />
+                                <p className="text-sm font-mono text-muted-foreground">ID: {profile?._id.slice(-8).toUpperCase()}</p>
+                            </div>
+                        </div>
+
+                        <div className="pb-4 flex gap-3">
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button className="h-12 px-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold gap-2">
+                                        <Settings className="w-4 h-4 text-primary" />
+                                        Configure Profile
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[500px] glass border-white/10 rounded-[2.5rem] p-0 overflow-hidden shadow-2xl">
+                                    <div className="p-8 space-y-8">
+                                        <div className="space-y-2">
+                                            <h2 className="text-3xl font-black text-white tracking-tighter">Profile Settings</h2>
+                                            <p className="text-muted-foreground font-medium">Update your operational credentials and identity parameters.</p>
+                                        </div>
+                                        
+                                        <div className="space-y-6">
+                                            <div className="space-y-2">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Full Name</Label>
+                                                <Input 
+                                                    value={editForm.full_name} 
+                                                    onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
+                                                    className="h-14 bg-white/5 border-white/5 rounded-2xl focus:ring-primary/20 text-white font-medium pl-6"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Phone Number</Label>
+                                                <Input 
+                                                    value={editForm.phone_number} 
+                                                    onChange={(e) => setEditForm({...editForm, phone_number: e.target.value})}
+                                                    className="h-14 bg-white/5 border-white/5 rounded-2xl focus:ring-primary/20 text-white font-medium pl-6"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Avatar URL</Label>
+                                                <Input 
+                                                    value={editForm.avatar_url} 
+                                                    onChange={(e) => setEditForm({...editForm, avatar_url: e.target.value})}
+                                                    className="h-14 bg-white/5 border-white/5 rounded-2xl focus:ring-primary/20 text-white font-medium pl-6"
+                                                    placeholder="https://..."
+                                                />
+                                                <p className="text-[10px] text-muted-foreground ml-1">Leave blank to use dicebear random generation.</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-4 pt-4">
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" className="flex-1 h-14 rounded-2xl border-white/10 text-white font-bold">Cancel</Button>
+                                            </DialogTrigger>
+                                            <Button 
+                                                onClick={handleUpdateProfile} 
+                                                className="flex-1 h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-tighter"
+                                                disabled={updating}
+                                            >
+                                                {updating ? <Loader2 className="animate-spin" /> : 'Save Changes'}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </div>
                 </div>
 
                 <div className="profile-stats-grid">
                     {stats.map((stat, index) => (
-                        <Card key={index} className="stat-item border-none shadow-sm">
-                            <div className={`p-3 rounded-xl bg-muted/50 ${stat.color} mb-3`}>
-                                <stat.icon className="w-6 h-6" />
+                        <div key={index} className="stat-item glass-card group">
+                            <div className={`w-14 h-14 mx-auto mb-6 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5 ${stat.color} group-hover:scale-110 transition-transform`}>
+                                <stat.icon className="w-7 h-7" />
                             </div>
                             <p className="stat-value">{stat.value}</p>
                             <p className="stat-label">{stat.label}</p>
-                        </Card>
+                        </div>
                     ))}
                 </div>
 
                 <div className="profile-content-grid">
-                    <div className="space-y-8">
-                        <Card className="section-card">
-                            <CardHeader>
-                                <CardTitle className="text-xl flex items-center gap-2">
-                                    <Trophy className="w-5 h-5 text-primary" />
-                                    Achievements
-                                </CardTitle>
-                                <CardDescription>Badges you've unlocked on your journey</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                {loadingAchievements ? (
-                                    <div className="flex justify-center py-8">
-                                        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                                    </div>
-                                ) : (
-                                    <div className="achievement-grid">
-                                        {achievements?.map((achievement) => (
-                                            <div key={achievement.id} className="achievement-item">
-                                                <AchievementBadge
-                                                    type={achievement.type}
-                                                    unlocked={!!achievement.unlocked_at}
-                                                    date={achievement.unlocked_at ? format(new Date(achievement.unlocked_at), 'MMM d, yyyy') : undefined}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                    <div className="lg:col-span-2 space-y-10">
+                        <section className="section-card shadow-2xl">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h2 className="text-2xl font-black text-white tracking-tighter flex items-center gap-2">
+                                        <Trophy className="w-6 h-6 text-primary" />
+                                        Operational Merit
+                                    </h2>
+                                    <p className="text-muted-foreground font-medium">Achievements and certifications unlocked.</p>
+                                </div>
+                                <Badge variant="outline" className="border-white/10 rounded-lg">
+                                    {achievements?.filter(a => a.unlocked_at).length || 0} Unlocked
+                                </Badge>
+                            </div>
 
-                        <Tabs defaultValue="activity">
-                            <TabsList className="grid w-full grid-cols-2 mb-6 shadow-sm">
-                                <TabsTrigger value="activity">Recent Activity</TabsTrigger>
-                                <TabsTrigger value="preferences">Preferences</TabsTrigger>
-                            </TabsList>
-                            <TabsContent value="activity">
-                                <Card className="section-card">
-                                    <CardContent className="pt-6 px-0">
-                                        {loadingActivity ? (
-                                            <div className="flex justify-center py-8">
-                                                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                            {loadingAchievements ? (
+                                <div className="flex justify-center py-12">
+                                    <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                                <div className="achievement-grid">
+                                    {achievements?.map((achievement) => (
+                                        <div key={achievement.id} className="flex flex-col items-center p-4 rounded-3xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
+                                            <AchievementBadge
+                                                type={achievement.type}
+                                                unlocked={!!achievement.unlocked_at}
+                                                date={achievement.unlocked_at ? format(new Date(achievement.unlocked_at), 'MMM d, yyyy') : undefined}
+                                            />
+                                            <p className={`mt-3 text-[10px] font-black uppercase tracking-widest ${achievement.unlocked_at ? 'text-white' : 'text-muted-foreground opacity-30'}`}>
+                                                {achievement.type.replace('_', ' ')}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+
+                        <section>
+                            <div className="flex gap-2 mb-8 p-1 bg-white/5 rounded-2xl border border-white/5 w-fit">
+                                <button
+                                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${!profileViewMode ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-white'}`}
+                                    onClick={() => setProfileViewMode(false)}
+                                >
+                                    Operations Log
+                                </button>
+                                <button
+                                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${profileViewMode ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-white'}`}
+                                    onClick={() => setProfileViewMode(true)}
+                                >
+                                    Security & Access
+                                </button>
+                            </div>
+
+                            {!profileViewMode ? (
+                                <div className="section-card shadow-2xl">
+                                    {loadingActivity ? (
+                                        <div className="flex justify-center py-12">
+                                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                        </div>
+                                    ) : activities.length === 0 ? (
+                                        <div className="text-center py-12 opacity-50">
+                                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/5">
+                                                <Clock className="w-8 h-8" />
                                             </div>
-                                        ) : activities.length === 0 ? (
-                                            <div className="text-center py-8 text-muted-foreground">
-                                                <p>No recent activity found.</p>
-                                            </div>
-                                        ) : (
-                                            <div className="activity-list px-6">
-                                                {activities.map((activity) => (
-                                                    <div key={activity._id} className="activity-item">
-                                                        <div className={`activity-icon ${activity.check_out ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
-                                                            <Clock className="w-4 h-4" />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <p className="font-semibold text-sm">
-                                                                {activity.check_out ? 'Shift Completed' : 'Checked In'}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {format(new Date(activity.date), 'MMM d, yyyy')}
-                                                            </p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="font-medium text-sm">
-                                                                {activity.check_out
-                                                                    ? format(new Date(activity.check_out), 'h:mm a')
-                                                                    : format(new Date(activity.check_in), 'h:mm a')
-                                                                }
-                                                            </p>
-                                                            <Badge variant="outline" className="text-xs capitalize">
-                                                                {activity.status.replace('_', ' ')}
-                                                            </Badge>
-                                                        </div>
+                                            <p className="font-bold">No active history reported.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="activity-list">
+                                            {activities.map((activity) => (
+                                                <div key={activity._id} className="activity-item group">
+                                                    <div className={`activity-icon ${activity.check_out ? 'bg-blue-500/10 text-blue-500' : 'bg-success/10 text-success'}`}>
+                                                        <div className={`w-2 h-2 rounded-full ${activity.check_out ? 'bg-blue-500' : 'bg-success'} animate-pulse`} />
                                                     </div>
-                                                ))}
+                                                    <div className="flex-1">
+                                                        <p className="font-black text-white uppercase tracking-tighter">
+                                                            {activity.check_out ? 'Mission Complete' : 'Entry Authorized'}
+                                                        </p>
+                                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                                            {format(new Date(activity.date), 'MMMM d, yyyy')}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right header-glass glass-card">
+                                                        <p className="font-mono text-white font-black text-base">
+                                                            {activity.check_out
+                                                                ? format(new Date(activity.check_out), 'hh:mm a')
+                                                                : format(new Date(activity.check_in), 'hh:mm a')
+                                                            }
+                                                        </p>
+                                                        <StatusBadge status={activity.status} size="sm" />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <Button variant="ghost" className="w-full mt-6 h-12 rounded-2xl hover:bg-white/5 text-muted-foreground hover:text-white font-bold uppercase tracking-widest text-[10px]">
+                                        Load Full Archive
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="section-card shadow-2xl">
+                                    <h3 className="text-xl font-black text-white tracking-tighter mb-6 flex items-center gap-2">
+                                        <Briefcase className="w-5 h-5 text-primary" /> Credential Rotation
+                                    </h3>
+                                    <form onSubmit={async (e) => {
+                                        e.preventDefault();
+                                        const formData = new FormData(e.currentTarget as HTMLFormElement);
+                                        const currentPassword = formData.get('currentPassword');
+                                        const newPassword = formData.get('newPassword');
+                                        const confirmPassword = formData.get('confirmPassword');
+
+                                        if (newPassword !== confirmPassword) {
+                                            toast.error('Passwords do not match');
+                                            return;
+                                        }
+
+                                        try {
+                                            await client.post('/auth/change-password', { currentPassword, newPassword });
+                                            toast.success('Password changed successfully');
+                                            (e.target as HTMLFormElement).reset();
+                                        } catch (err: any) {
+                                            toast.error(err.response?.data?.message || 'Failed to change password');
+                                        }
+                                    }} className="space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <Label className="text-white text-[10px] uppercase font-bold tracking-widest">Current Password</Label>
+                                                <Input type="password" name="currentPassword" required className="bg-white/5 border-white/10 text-white h-12 rounded-xl" />
                                             </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                            <TabsContent value="preferences">
-                                <Card className="section-card">
-                                    <CardContent className="p-12 text-center text-muted-foreground">
-                                        <p>Preferences settings coming soon...</p>
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                        </Tabs>
+                                            <div className="space-y-2">
+                                                <Label className="text-white text-[10px] uppercase font-bold tracking-widest">New Password</Label>
+                                                <Input type="password" name="newPassword" required className="bg-white/5 border-white/10 text-white h-12 rounded-xl" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-white text-[10px] uppercase font-bold tracking-widest">Confirm New Password</Label>
+                                            <Input type="password" name="confirmPassword" required className="bg-white/5 border-white/10 text-white h-12 rounded-xl" />
+                                        </div>
+                                        <Button type="submit" className="w-full bg-primary text-white font-black uppercase tracking-tighter h-14 rounded-2xl shadow-lg shadow-primary/20">
+                                            Authorize Password Change
+                                        </Button>
+                                    </form>
+                                </div>
+                            )}
+                        </section>
                     </div>
 
-                    <div className="space-y-6">
-                        <Card className="bg-gradient-to-br from-primary/10 via-background to-background border-primary/20">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Account Information</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-1">
-                                    <Label className="text-xs text-muted-foreground">User ID</Label>
-                                    <p className="font-mono text-xs overflow-hidden truncate">{profile?._id}</p>
+                    <div className="space-y-10">
+                        <section className="glass-card p-8 rounded-[2rem] bg-gradient-to-br from-primary/10 via-transparent to-transparent border-primary/20 shadow-2xl">
+                            <h3 className="text-xl font-black text-white tracking-tighter mb-8 flex items-center gap-2">
+                                <Shield className="w-5 h-5 text-primary" /> Security Clearances
+                            </h3>
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">System Token ID</p>
+                                    <p className="font-mono text-[10px] text-white/50 bg-black/40 p-3 rounded-xl border border-white/5 break-all leading-relaxed">{profile?._id}</p>
                                 </div>
-                                <Separator />
+                                <div className="h-px bg-white/5" />
                                 <div className="space-y-1">
-                                    <Label className="text-xs text-muted-foreground">Joined On</Label>
-                                    <p className="font-medium">Jan 10, 2026</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Enlistment Date</p>
+                                    <p className="text-lg font-black text-white tracking-tighter">January 10, 2026</p>
                                 </div>
-                                <Separator />
+                                <div className="h-px bg-white/5" />
                                 <div className="space-y-1">
-                                    <Label className="text-xs text-muted-foreground">Department</Label>
-                                    <p className="font-medium">Operations</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Department Unit</p>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <div className="w-2 h-2 rounded-full bg-primary" />
+                                        <p className="text-lg font-black text-white tracking-tighter uppercase">Operations</p>
+                                    </div>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </section>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">Help & Support</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <p className="text-sm text-muted-foreground">
-                                    Having trouble with check-ins or need to update your details?
-                                </p>
-                                <Button className="w-full h-11">Contact HR Manager</Button>
-                            </CardContent>
-                        </Card>
+                        <section className="glass-card p-8 rounded-[2rem] border-white/5 shadow-2xl relative overflow-hidden group">
+                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+                            <h3 className="text-xl font-black text-white tracking-tighter mb-6">HQ Support</h3>
+                            <p className="text-sm text-muted-foreground font-medium mb-8 leading-relaxed">
+                                Requires credential modifications or experiencing signal interference? Contact terminal management.
+                            </p>
+                            <Button className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black uppercase tracking-widest text-xs shadow-xl">
+                                Secure Line to HR
+                            </Button>
+                        </section>
                     </div>
                 </div>
             </div>
         </Layout>
     );
-}
-
-function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-    return <p className={`text-xs font-semibold uppercase tracking-wider ${className}`}>{children}</p>;
 }

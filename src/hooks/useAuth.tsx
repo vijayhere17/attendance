@@ -19,6 +19,7 @@ interface Profile {
   notification_preferences?: any;
   avatar_url?: string;
   wfh_enabled?: boolean;
+  phone_number?: string;
 }
 
 interface AuthContextType {
@@ -74,7 +75,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data);
       toast.success('Logged in successfully!');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      console.error('Login error:', error);
+      if (!error.response) {
+        toast.error('Network Error: Cannot reach the server. Please check VITE_API_URL configuration.');
+      } else {
+        toast.error(error.response?.data?.message || 'Login failed');
+      }
       throw error;
     }
   };

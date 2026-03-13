@@ -72,6 +72,15 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true,
     },
+    avatar_url: {
+        type: String,
+        default: '',
+    },
+    monthly_limits: {
+        leave: { type: Number, default: 2 },
+        late: { type: Number, default: 3 },
+        wfh: { type: Number, default: 2 },
+    },
     temp_password_created_at: {
         type: Date,
     },

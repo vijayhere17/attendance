@@ -96,6 +96,9 @@ export default function AdminEmployees() {
   const [createdUser, setCreatedUser] = useState<CreateUserResponse | null>(null);
   const [passwordCopied, setPasswordCopied] = useState(false);
 
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+
   const fetchEmployees = async () => {
     try {
       const { data } = await client.get('/admin/employees');
@@ -110,6 +113,38 @@ export default function AdminEmployees() {
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  const handleEditUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEmployee) return;
+
+    setCreating(true);
+    try {
+      const formData = new FormData(e.currentTarget as HTMLFormElement);
+      const data = {
+        full_name: formData.get('full_name'),
+        phone_number: formData.get('phone_number'),
+        studentId: formData.get('studentId'),
+        role: formData.get('role'),
+        batch: formData.get('batch'),
+        wfh_enabled: formData.get('wfh_enabled') === 'on',
+        monthly_limits: {
+          leave: Number(formData.get('limit_leave')),
+          late: Number(formData.get('limit_late')),
+          wfh: Number(formData.get('limit_wfh')),
+        }
+      };
+
+      await client.put(`/admin/users/${editingEmployee._id}`, data);
+      toast.success('User updated successfully');
+      setEditDialogOpen(false);
+      fetchEmployees();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update user');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -537,7 +572,13 @@ export default function AdminEmployees() {
                               Reset Password
                             </DropdownMenuItem>
                             <DropdownMenuItem>View Profile</DropdownMenuItem>
-                            <DropdownMenuItem>Edit Details</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                                setEditingEmployee(emp);
+                                setEditDialogOpen(true);
+                            }}>
+                                <UserCircle className="w-4 h-4 mr-2" />
+                                Edit Details
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
@@ -692,6 +733,100 @@ export default function AdminEmployees() {
           </>
         )}
       </div>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Employee Details</DialogTitle>
+            <DialogDescription>Update profile and monthly limits for {editingEmployee?.full_name}.</DialogDescription>
+          </DialogHeader>
+          {editingEmployee && (
+            <form onSubmit={handleEditUser} className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_name">Full Name</Label>
+                  <Input id="edit_name" name="full_name" defaultValue={editingEmployee.full_name} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_studentId">Student ID</Label>
+                  <Input id="edit_studentId" name="studentId" defaultValue={editingEmployee.studentId} required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_email">Email (Read-only)</Label>
+                  <Input id="edit_email" value={editingEmployee.email} readOnly disabled />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_phone">Phone Number</Label>
+                  <Input id="edit_phone" name="phone_number" defaultValue={editingEmployee.phone_number} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <Select name="role" defaultValue={editingEmployee.role}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="employee">Employee</SelectItem>
+                      <SelectItem value="intern">Intern</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Batch (Interns only)</Label>
+                  <Select name="batch" defaultValue={editingEmployee.batch || 'batch1'}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="batch1">Batch 1</SelectItem>
+                      <SelectItem value="batch2">Batch 2</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="p-4 bg-muted/30 rounded-xl space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Monthly Limits</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Leave</Label>
+                    <Input name="limit_leave" type="number" defaultValue={(editingEmployee as any).monthly_limits?.leave || 2} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Late</Label>
+                    <Input name="limit_late" type="number" defaultValue={(editingEmployee as any).monthly_limits?.late || 3} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>WFH</Label>
+                    <Input name="limit_wfh" type="number" defaultValue={(editingEmployee as any).monthly_limits?.wfh || 2} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 border p-3 rounded-md bg-muted/20">
+                <input
+                  type="checkbox"
+                  id="edit_wfh"
+                  name="wfh_enabled"
+                  className="h-4 w-4 rounded border-gray-300 text-primary"
+                  defaultChecked={(editingEmployee as any).wfh_enabled}
+                />
+                <label htmlFor="edit_wfh" className="text-sm font-medium cursor-pointer">Enable Work From Home</label>
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={creating}>Save Changes</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

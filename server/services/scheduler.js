@@ -67,7 +67,6 @@ const initScheduler = () => {
     });
 
     cron.schedule('*/5 * * * *', async () => {
-        console.log('Running Check-out Reminder Check...');
         try {
             const now = new Date();
             const today = new Date().toISOString().split('T')[0];
@@ -79,6 +78,7 @@ const initScheduler = () => {
                 const reminderTime = new Date(shiftEnd.getTime() + 5 * 60000);
 
                 if (now >= reminderTime && now < new Date(reminderTime.getTime() + 6 * 60000)) {
+                    console.log(`Running Check-out Reminder Check for ${config.role} ${config.batch || ''}...`);
                     const query = { role: config.role };
                     if (config.batch) query.batch = config.batch;
 
@@ -89,11 +89,19 @@ const initScheduler = () => {
                         user: { $in: userIds },
                         date: today,
                         check_in: { $exists: true },
-                        check_out: { $exists: false }
+                        check_out: { $exists: false },
+                        checkout_reminder_sent: false
                     }).populate('user');
 
                     for (const record of forgetfulUsers) {
-                        await sendCheckOutReminder(record.user);
+                        try {
+                            await sendCheckOutReminder(record.user);
+                            record.checkout_reminder_sent = true;
+                            await record.save();
+                            console.log(`Check-out reminder sent to ${record.user.full_name}`);
+                        } catch (emailError) {
+                            console.error(`Failed to send check-out reminder to ${record.user.full_name}:`, emailError);
+                        }
                     }
                 }
             }

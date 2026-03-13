@@ -108,96 +108,103 @@ export default function AdminDashboard() {
           <StatCard
             title="Total Employees"
             value={stats.total}
-            icon={<Users className="w-4 h-4 text-muted-foreground" />}
+            icon={<Users className="w-5 h-5" />}
             variant="default"
             description="Active members"
-            className="chart-card"
+            className="stat-card-premium glass-card"
           />
           <StatCard
             title="Present Today"
             value={stats.present}
-            icon={<UserCheck className="w-4 h-4 text-emerald-600" />}
+            icon={<UserCheck className="w-5 h-5 text-success" />}
             variant="default"
-            trend={{ value: 5, label: 'vs yesterday' }}
-            className="chart-card"
+            description="Checked in on time"
+            className="stat-card-premium glass-card"
           />
           <StatCard
             title="Late Arrivals"
             value={stats.late}
-            icon={<Clock className="w-4 h-4 text-amber-600" />}
+            icon={<Clock className="w-5 h-5 text-warning" />}
             variant="default"
             description="After shift start"
-            className="chart-card"
+            className="stat-card-premium glass-card"
           />
           <StatCard
             title="Absent Today"
             value={stats.absent}
-            icon={<UserX className="w-4 h-4 text-rose-600" />}
+            icon={<UserX className="w-5 h-5 text-destructive" />}
             variant="default"
             description="Not checked in"
-            className="chart-card"
+            className="stat-card-premium glass-card"
           />
         </div>
 
         <div className="charts-grid">
-          <Card className="lg:col-span-2 chart-card">
+          <Card className="lg:col-span-2 chart-card glass-card">
             <CardHeader>
-              <CardTitle className="text-lg font-medium">Weekly Trends</CardTitle>
-              <CardDescription>Attendance overview for this week</CardDescription>
+              <CardTitle className="text-xl">Weekly Attendance</CardTitle>
+              <CardDescription>Real-time analytics for the current week</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] w-full">
+              <div className="h-[350px] w-full mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={weeklyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.1} />
+                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                       </linearGradient>
+                      <linearGradient id="colorLate" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--warning)" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="var(--warning)" stopOpacity={0} />
+                      </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                     <XAxis
                       dataKey="day"
                       stroke="hsl(var(--muted-foreground))"
-                      fontSize={12}
+                      fontSize={11}
                       tickLine={false}
                       axisLine={false}
-                      dy={10}
+                      dy={15}
                     />
                     <YAxis
                       stroke="hsl(var(--muted-foreground))"
-                      fontSize={12}
+                      fontSize={11}
                       tickLine={false}
                       axisLine={false}
                       dx={-10}
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'hsl(var(--popover))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '6px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
                       }}
-                      itemStyle={{ color: 'hsl(var(--foreground))' }}
-                      cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1 }}
+                      itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                      cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
                     />
                     <Area
                       type="monotone"
                       dataKey="present"
                       name="Present"
-                      stroke="var(--primary)"
+                      stroke="#0EA5E9"
                       fillOpacity={1}
                       fill="url(#colorPresent)"
-                      strokeWidth={2}
+                      strokeWidth={3}
+                      animationDuration={1500}
                     />
                     <Area
                       type="monotone"
                       dataKey="late"
                       name="Late"
-                      stroke="var(--warning)"
-                      fillOpacity={0.2}
-                      fill="var(--warning)"
-                      strokeWidth={2}
+                      stroke="#F59E0B"
+                      fillOpacity={1}
+                      fill="url(#colorLate)"
+                      strokeWidth={3}
+                      animationDuration={2000}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -206,7 +213,7 @@ export default function AdminDashboard() {
           </Card>
 
           <div className="space-y-6">
-            <Card className="chart-card">
+            <Card className="chart-card glass-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-base font-medium">Live Feed</CardTitle>
               </CardHeader>
@@ -243,7 +250,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="leaderboard-card">
+            <Card className="dashboard-card glass-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base font-medium">Top Performers</CardTitle>
               </CardHeader>

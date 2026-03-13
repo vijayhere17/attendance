@@ -111,7 +111,7 @@ export function AttendanceCalendar({ records, currentDate, onMonthChange }: Atte
                         const isTodayDate = isToday(day);
 
                         return (
-                            <TooltipProvider key={record._id || day.toISOString()}>
+                            <TooltipProvider key={record?._id || day.toISOString()}>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <button

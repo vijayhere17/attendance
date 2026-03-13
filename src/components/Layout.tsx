@@ -71,10 +71,11 @@ export function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Sidebar Navigation */}
-      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+      <aside className={`sidebar glass ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-content">
           <div className="sidebar-header">
             <img src={logo} alt="Exotic Infotech" className="h-10 w-auto" />
+            <span className="sidebar-brand-name font-display text-gradient">Radius Check</span>
           </div>
 
           <nav className="sidebar-nav">
@@ -97,20 +98,20 @@ export function Layout({ children }: LayoutProps) {
           <div className="sidebar-footer">
             <div className="user-profile">
               <div className="user-avatar">
-                {user?.email?.substring(0, 2).toUpperCase()}
+                {user?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U'}
               </div>
               <div className="user-info">
-                <p className="user-email">{user?.email}</p>
-                <p className="user-role">{isAdmin ? 'Administrator' : 'Employee'}</p>
+                <p className="user-name">{user?.full_name || 'User'}</p>
+                <p className="user-role">{isAdmin ? 'Administrator' : 'Team Member'}</p>
               </div>
             </div>
 
             <Button
               variant="ghost"
-              className="w-full justify-start gap-2 nav-link"
+              className="w-full justify-start gap-3 nav-link hover:bg-destructive/10 hover:text-destructive group"
               onClick={handleSignOut}
             >
-              <LogOut className="nav-icon" />
+              <LogOut className="nav-icon group-hover:text-destructive" />
               Sign Out
             </Button>
           </div>

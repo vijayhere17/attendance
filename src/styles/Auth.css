@@ -1,112 +1,67 @@
 /* Auth & Change Password Styles */
 
 .auth-page-wrapper {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--background);
-    padding: 1.5rem;
+  @apply min-h-screen flex items-center justify-center bg-[#020617];
+  background-image: 
+    radial-gradient(circle at 10% 10%, hsla(199, 89%, 48%, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, hsla(250, 84%, 54%, 0.15) 0%, transparent 40%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
 .auth-container {
-    width: 100%;
-    max-width: 64rem;
-    /* max-w-5xl */
-    display: grid;
-    gap: 3rem;
-}
-
-@media (min-width: 1024px) {
-    .auth-container {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  @apply w-full max-w-6xl grid lg:grid-cols-2 gap-12 p-6 lg:p-12;
 }
 
 /* Left side branding */
 .auth-branding {
-    display: none;
-}
-
-@media (min-width: 1024px) {
-    .auth-branding {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-    }
+  @apply hidden lg:flex flex-col justify-center space-y-8;
 }
 
 .logo-section {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  @apply flex items-center gap-4;
 }
 
 /* Removed logo-box styles as using <img> directly */
 
 .hero-title {
-    font-size: 3rem;
-    font-weight: 800;
-    line-height: 1.1;
-    color: var(--foreground);
+  @apply text-5xl font-extrabold leading-tight tracking-tight text-white;
 }
 
 .hero-subtitle {
-    font-size: 1.125rem;
-    color: var(--muted-foreground);
-    line-height: 1.6;
-    max-width: 28rem;
+  @apply text-lg text-muted-foreground max-w-md;
 }
 
 .feature-highlights {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    margin-top: 2rem;
+  @apply grid grid-cols-2 gap-6 mt-12;
 }
 
 .feature-item {
-    padding: 1.25rem;
-    border-radius: 1rem;
-    background-color: var(--card);
-    border: 1px solid var(--border);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  @apply p-4 rounded-2xl space-y-2;
 }
 
 .feature-item svg {
-    margin-bottom: 0.5rem;
-    color: var(--primary);
+  @apply text-primary w-8 h-8 mb-2;
 }
 
 /* Form Styles */
 .auth-form-card {
-    width: 100%;
-    max-width: 28rem;
-    margin: 0 auto;
-    border: 1px solid var(--border);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  @apply border-white/10 rounded-[2rem] p-4 lg:p-8;
+  @apply shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)];
 }
 
 .auth-form-header {
-    text-align: center;
-    margin-bottom: 1.5rem;
+  @apply space-y-2 text-center mb-8;
+}
+
+.auth-form-header h2 {
+  @apply text-3xl font-bold text-white;
 }
 
 .auth-input-group {
-    position: relative;
+  @apply relative;
 }
 
 .auth-input-icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted-foreground);
-    pointer-events: none;
-}
-
-.password-toggle {
-    position: absolute;
     right: 0.25rem;
     top: 50%;
     transform: translateY(-50%);
