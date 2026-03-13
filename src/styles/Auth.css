@@ -1,20 +1,19 @@
 /* Auth & Change Password Styles */
 
 .auth-page-wrapper {
-  @apply min-h-screen flex items-center justify-center bg-[#020617];
+  @apply min-h-screen flex items-center justify-center bg-background transition-colors duration-500;
   background-image: 
-    radial-gradient(circle at 10% 10%, hsla(199, 89%, 48%, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 90% 90%, hsla(250, 84%, 54%, 0.15) 0%, transparent 40%),
-    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    radial-gradient(circle at 10% 10%, hsl(var(--primary) / 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, hsl(var(--accent) / 0.1) 0%, transparent 40%);
 }
 
 .auth-container {
-  @apply w-full max-w-6xl grid lg:grid-cols-2 gap-12 p-6 lg:p-12;
+  @apply w-full max-w-6xl grid lg:grid-cols-2 gap-16 p-8 lg:p-16 items-center;
 }
 
 /* Left side branding */
 .auth-branding {
-  @apply hidden lg:flex flex-col justify-center space-y-8;
+  @apply hidden lg:flex flex-col justify-center space-y-10;
 }
 
 .logo-section {
@@ -24,37 +23,36 @@
 /* Removed logo-box styles as using <img> directly */
 
 .hero-title {
-  @apply text-5xl font-extrabold leading-tight tracking-tight text-white;
+  @apply text-6xl font-black leading-[1.1] tracking-tighter text-foreground;
 }
 
 .hero-subtitle {
-  @apply text-lg text-muted-foreground max-w-md;
+  @apply text-xl text-muted-foreground max-w-lg leading-relaxed font-medium;
 }
 
 .feature-highlights {
-  @apply grid grid-cols-2 gap-6 mt-12;
+  @apply grid grid-cols-2 gap-8 mt-4;
 }
 
 .feature-item {
-  @apply p-4 rounded-2xl space-y-2;
+  @apply p-6 rounded-3xl space-y-3 bg-muted/30 border border-border;
 }
 
-.feature-item svg {
-  @apply text-primary w-8 h-8 mb-2;
+.feature-item p:first-of-type {
+    @apply text-foreground;
 }
 
 /* Form Styles */
 .auth-form-card {
-  @apply border-white/10 rounded-[2rem] p-4 lg:p-8;
-  @apply shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)];
+  @apply border-border rounded-[3rem] p-6 lg:p-10 bg-card shadow-2xl;
 }
 
 .auth-form-header {
-  @apply space-y-2 text-center mb-8;
+  @apply space-y-2 text-center mb-10;
 }
 
 .auth-form-header h2 {
-  @apply text-3xl font-bold text-white;
+  @apply text-4xl font-black text-foreground tracking-tighter;
 }
 
 .auth-input-group {
@@ -62,19 +60,15 @@
 }
 
 .auth-input-icon {
-    right: 0.25rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted-foreground);
-    height: 2rem !important;
-    width: 2rem !important;
-    padding: 0 !important;
-    z-index: 10;
+    @apply text-muted-foreground transition-colors;
 }
 
-.password-toggle:hover {
-    color: var(--foreground);
-    background-color: transparent !important;
+.auth-input-group:focus-within .auth-input-icon {
+    @apply text-primary;
+}
+
+.password-toggle {
+    @apply absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-transparent;
 }
 
 .auth-input-group input {
@@ -82,27 +76,15 @@
 }
 
 .auth-submit-btn {
-    width: 100%;
-    height: 3rem;
-    font-size: 1rem;
-    font-weight: 600;
-    gap: 0.5rem;
+    @apply w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all;
 }
 
 /* Support/Footer text */
 .auth-footer-text {
-    text-align: center;
-    font-size: 0.75rem;
-    color: var(--muted-foreground);
-    margin-top: 1.5rem;
+    @apply text-center text-xs text-muted-foreground mt-8 font-medium;
 }
 
 /* Loading overlay */
 .loading-overlay {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--background);
+    @apply min-h-screen flex flex-col items-center justify-center bg-background;
 }

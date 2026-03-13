@@ -81,10 +81,10 @@ export default function History() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-1">
             <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-                Strategic Archive
+                Attendance History
             </Badge>
             <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter">My History</h1>
-            <p className="text-muted-foreground font-medium max-w-md">Detailed record of your operational deployment and attendance reliability.</p>
+            <p className="text-muted-foreground font-medium max-w-md">Detailed record of your work history and attendance reliability.</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Button variant="outline" className="h-12 px-6 rounded-2xl glass border-white/10 hover:bg-white/10 text-white font-bold gap-2">

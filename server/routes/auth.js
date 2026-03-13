@@ -117,6 +117,43 @@ router.put('/profile', protect, async (req, res) => {
     }
 });
 
+router.get('/profile/activity', protect, async (req, res) => {
+    try {
+        const activities = await Attendance.find({ user: req.user._id })
+            .sort({ date: -1, createdAt: -1 })
+            .limit(5);
+        res.json(activities);
+    } catch (error) {
+        console.error('Error fetching activity:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+import uploadAvatar from '../middleware/uploadMiddleware.js';
+
+router.post('/upload-avatar', protect, uploadAvatar.single('avatar'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Please upload a file' });
+        }
+
+        const user = await User.findById(req.user._id);
+        const avatarPath = `/uploads/avatars/${req.file.filename}`;
+        
+        user.avatar_url = avatarPath;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Avatar uploaded successfully',
+            avatar_url: avatarPath
+        });
+    } catch (error) {
+        console.error('Error uploading avatar:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 // Import Attendance for stats calculation
 import Attendance from '../models/Attendance.js';
 

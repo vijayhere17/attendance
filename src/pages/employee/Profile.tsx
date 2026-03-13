@@ -86,7 +86,27 @@ export default function Profile() {
     };
 
     const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        toast.info("Avatar upload is currently disabled during migration.");
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        setUploading(true);
+        try {
+            const { data } = await client.post('/auth/upload-avatar', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            toast.success('Avatar uploaded successfully!');
+            // Update local state or reload
+            window.location.reload();
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Failed to upload avatar');
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleRandomAvatar = async () => {
@@ -112,6 +132,14 @@ export default function Profile() {
         } finally {
             setUpdating(false);
         }
+    };
+
+    const getAvatarSrc = (url: string | undefined) => {
+        if (!url) return `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email}`;
+        if (url.startsWith('https://') || url.startsWith('http://')) return url;
+        // Prefix local uploads with server URL
+        const serverURL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+        return `${serverURL}${url}`;
     };
 
     const stats = [
@@ -148,33 +176,41 @@ export default function Profile() {
                     <div className="h-48 md:h-64 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent relative">
                         <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
                         <div className="absolute top-8 right-8">
-                            <Badge className="bg-success/10 text-success border border-success/20 px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px]">
-                                Verified Operative
+                            <Badge className="bg-success/20 text-success border border-success/30 px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px]">
+                                Authorized {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'User'}
                             </Badge>
                         </div>
                     </div>
 
                     <div className="px-8 pb-12 -mt-16 md:-mt-24 relative flex flex-col md:flex-row items-end gap-8">
                         <div className="relative group">
-                            <div className="w-32 h-32 md:w-48 md:h-48 rounded-[2.5rem] border-[6px] border-[#020617] p-1 bg-gradient-to-tr from-primary to-blue-600 shadow-2xl relative overflow-hidden">
+                            <div className="w-32 h-32 md:w-48 md:h-48 rounded-[2.5rem] border-[6px] border-background p-1 bg-gradient-to-tr from-primary to-blue-600 shadow-2xl relative overflow-hidden">
                                 <Avatar className="w-full h-full rounded-[2rem]">
-                                    <AvatarImage src={(profile as any)?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email}`} className="object-cover" />
-                                    <AvatarFallback className="bg-white/10 text-white text-4xl font-black">
-                                        {getInitials(profile?.full_name || '')}
-                                    </AvatarFallback>
+                                    {uploading ? (
+                                        <div className="flex items-center justify-center w-full h-full bg-black/50">
+                                            <Loader2 className="w-10 h-10 animate-spin text-white" />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <AvatarImage src={getAvatarSrc((profile as any)?.avatar_url)} className="object-cover" />
+                                            <AvatarFallback className="bg-white/10 text-white text-4xl font-black">
+                                                {getInitials(profile?.full_name || '')}
+                                            </AvatarFallback>
+                                        </>
+                                    )}
                                 </Avatar>
                             </div>
                             <div className="absolute -bottom-2 -right-2 flex gap-2">
                                 <button
                                     onClick={handleRandomAvatar}
-                                    className="p-3 bg-white text-black rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-[#020617] group"
+                                    className="p-3 bg-card text-foreground rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-background group"
                                     title="Generate Random Avatar"
                                 >
                                     <Flame className="w-4 h-4 group-hover:animate-pulse" />
                                 </button>
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="p-3 bg-primary text-white rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-[#020617]"
+                                    className="p-3 bg-primary text-primary-foreground rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-background"
                                     title="Upload Photo"
                                 >
                                     <Camera className="w-4 h-4" />
@@ -184,13 +220,13 @@ export default function Profile() {
                         </div>
 
                         <div className="flex-1 pb-4">
-                            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2">{profile?.full_name}</h1>
+                            <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter mb-2">{profile?.full_name}</h1>
                             <div className="flex flex-wrap gap-4 items-center">
-                                <Badge variant="outline" className="gap-2 border-white/10 bg-white/5 text-muted-foreground py-1.5 px-4 rounded-xl font-bold">
+                                <Badge variant="outline" className="gap-2 border-border bg-muted/50 text-muted-foreground py-1.5 px-4 rounded-xl font-bold">
                                     <Mail className="w-3.5 h-3.5" />
                                     {profile?.email}
                                 </Badge>
-                                <Badge variant="outline" className="gap-2 border-white/10 bg-white/5 text-muted-foreground py-1.5 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px]">
+                                <Badge variant="outline" className="gap-2 border-border bg-muted/50 text-muted-foreground py-1.5 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px]">
                                     <Briefcase className="w-3.5 h-3.5" />
                                     {profile?.role}
                                 </Badge>
@@ -211,7 +247,7 @@ export default function Profile() {
                                     <div className="p-8 space-y-8">
                                         <div className="space-y-2">
                                             <h2 className="text-3xl font-black text-white tracking-tighter">Profile Settings</h2>
-                                            <p className="text-muted-foreground font-medium">Update your operational credentials and identity parameters.</p>
+                                            <p className="text-muted-foreground font-medium">Update your profile details and identity parameters.</p>
                                         </div>
                                         
                                         <div className="space-y-6">
@@ -313,18 +349,18 @@ export default function Profile() {
                         </section>
 
                         <section>
-                            <div className="flex gap-2 mb-8 p-1 bg-white/5 rounded-2xl border border-white/5 w-fit">
+                            <div className="flex gap-2 mb-8 p-1 bg-muted/50 rounded-2xl border border-border w-fit">
                                 <button
-                                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${!profileViewMode ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-white'}`}
+                                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${!profileViewMode ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'}`}
                                     onClick={() => setProfileViewMode(false)}
                                 >
-                                    Operations Log
+                                    Attendance Logs
                                 </button>
                                 <button
-                                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${profileViewMode ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-white'}`}
+                                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${profileViewMode ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'}`}
                                     onClick={() => setProfileViewMode(true)}
                                 >
-                                    Security & Access
+                                    Account Settings
                                 </button>
                             </div>
 
@@ -336,10 +372,10 @@ export default function Profile() {
                                         </div>
                                     ) : activities.length === 0 ? (
                                         <div className="text-center py-12 opacity-50">
-                                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/5">
+                                            <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4 border border-border">
                                                 <Clock className="w-8 h-8" />
                                             </div>
-                                            <p className="font-bold">No active history reported.</p>
+                                            <p className="font-bold text-foreground">No active history reported.</p>
                                         </div>
                                     ) : (
                                         <div className="activity-list">
@@ -349,15 +385,15 @@ export default function Profile() {
                                                         <div className={`w-2 h-2 rounded-full ${activity.check_out ? 'bg-blue-500' : 'bg-success'} animate-pulse`} />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <p className="font-black text-white uppercase tracking-tighter">
-                                                            {activity.check_out ? 'Mission Complete' : 'Entry Authorized'}
+                                                        <p className="font-black text-foreground uppercase tracking-tighter">
+                                                            {activity.check_out ? 'Check-out Complete' : 'Check-in Confirmed'}
                                                         </p>
                                                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                                             {format(new Date(activity.date), 'MMMM d, yyyy')}
                                                         </p>
                                                     </div>
                                                     <div className="text-right header-glass glass-card">
-                                                        <p className="font-mono text-white font-black text-base">
+                                                        <p className="font-mono text-foreground font-black text-base">
                                                             {activity.check_out
                                                                 ? format(new Date(activity.check_out), 'hh:mm a')
                                                                 : format(new Date(activity.check_in), 'hh:mm a')
@@ -369,14 +405,14 @@ export default function Profile() {
                                             ))}
                                         </div>
                                     )}
-                                    <Button variant="ghost" className="w-full mt-6 h-12 rounded-2xl hover:bg-white/5 text-muted-foreground hover:text-white font-bold uppercase tracking-widest text-[10px]">
+                                    <Button variant="ghost" className="w-full mt-6 h-12 rounded-2xl hover:bg-muted/50 text-muted-foreground hover:text-foreground font-bold uppercase tracking-widest text-[10px]">
                                         Load Full Archive
                                     </Button>
                                 </div>
                             ) : (
                                 <div className="section-card shadow-2xl">
-                                    <h3 className="text-xl font-black text-white tracking-tighter mb-6 flex items-center gap-2">
-                                        <Briefcase className="w-5 h-5 text-primary" /> Credential Rotation
+                                    <h3 className="text-xl font-black text-foreground tracking-tighter mb-6 flex items-center gap-2">
+                                        <Briefcase className="w-5 h-5 text-primary" /> Password Settings
                                     </h3>
                                     <form onSubmit={async (e) => {
                                         e.preventDefault();
@@ -400,20 +436,20 @@ export default function Profile() {
                                     }} className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <Label className="text-white text-[10px] uppercase font-bold tracking-widest">Current Password</Label>
-                                                <Input type="password" name="currentPassword" required className="bg-white/5 border-white/10 text-white h-12 rounded-xl" />
+                                                <Label className="text-foreground text-[10px] uppercase font-bold tracking-widest">Current Password</Label>
+                                                <Input type="password" name="currentPassword" required className="bg-muted/50 border-border text-foreground h-12 rounded-xl" />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label className="text-white text-[10px] uppercase font-bold tracking-widest">New Password</Label>
-                                                <Input type="password" name="newPassword" required className="bg-white/5 border-white/10 text-white h-12 rounded-xl" />
+                                                <Label className="text-foreground text-[10px] uppercase font-bold tracking-widest">New Password</Label>
+                                                <Input type="password" name="newPassword" required className="bg-muted/50 border-border text-foreground h-12 rounded-xl" />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-white text-[10px] uppercase font-bold tracking-widest">Confirm New Password</Label>
-                                            <Input type="password" name="confirmPassword" required className="bg-white/5 border-white/10 text-white h-12 rounded-xl" />
+                                            <Label className="text-foreground text-[10px] uppercase font-bold tracking-widest">Confirm New Password</Label>
+                                            <Input type="password" name="confirmPassword" required className="bg-muted/50 border-border text-foreground h-12 rounded-xl" />
                                         </div>
                                         <Button type="submit" className="w-full bg-primary text-white font-black uppercase tracking-tighter h-14 rounded-2xl shadow-lg shadow-primary/20">
-                                            Authorize Password Change
+                                            Update Password
                                         </Button>
                                     </form>
                                 </div>
@@ -423,38 +459,38 @@ export default function Profile() {
 
                     <div className="space-y-10">
                         <section className="glass-card p-8 rounded-[2rem] bg-gradient-to-br from-primary/10 via-transparent to-transparent border-primary/20 shadow-2xl">
-                            <h3 className="text-xl font-black text-white tracking-tighter mb-8 flex items-center gap-2">
-                                <Shield className="w-5 h-5 text-primary" /> Security Clearances
+                            <h3 className="text-xl font-black text-foreground tracking-tighter mb-8 flex items-center gap-2">
+                                <Shield className="w-5 h-5 text-primary" /> Employment Details
                             </h3>
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">System Token ID</p>
-                                    <p className="font-mono text-[10px] text-white/50 bg-black/40 p-3 rounded-xl border border-white/5 break-all leading-relaxed">{profile?._id}</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Employee Token ID</p>
+                                    <p className="font-mono text-[10px] text-foreground/50 bg-muted/50 p-3 rounded-xl border border-border break-all leading-relaxed">{profile?._id}</p>
                                 </div>
                                 <div className="h-px bg-white/5" />
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Enlistment Date</p>
-                                    <p className="text-lg font-black text-white tracking-tighter">January 10, 2026</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Joining Date</p>
+                                    <p className="text-lg font-black text-foreground tracking-tighter">January 10, 2026</p>
                                 </div>
                                 <div className="h-px bg-white/5" />
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Department Unit</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Department</p>
                                     <div className="flex items-center gap-2 mt-2">
                                         <div className="w-2 h-2 rounded-full bg-primary" />
-                                        <p className="text-lg font-black text-white tracking-tighter uppercase">Operations</p>
+                                        <p className="text-lg font-black text-foreground tracking-tighter uppercase">Operations</p>
                                     </div>
                                 </div>
                             </div>
                         </section>
 
-                        <section className="glass-card p-8 rounded-[2rem] border-white/5 shadow-2xl relative overflow-hidden group">
+                        <section className="glass-card p-8 rounded-[2rem] border-border shadow-2xl relative overflow-hidden group">
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
-                            <h3 className="text-xl font-black text-white tracking-tighter mb-6">HQ Support</h3>
+                            <h3 className="text-xl font-black text-foreground tracking-tighter mb-6">HR Support</h3>
                             <p className="text-sm text-muted-foreground font-medium mb-8 leading-relaxed">
-                                Requires credential modifications or experiencing signal interference? Contact terminal management.
+                                Need to update your profile or having technical issues? Contact HR Support.
                             </p>
-                            <Button className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black uppercase tracking-widest text-xs shadow-xl">
-                                Secure Line to HR
+                            <Button className="w-full h-14 rounded-2xl bg-muted/50 border border-border hover:bg-muted text-foreground font-black uppercase tracking-widest text-xs shadow-xl">
+                                Contact HR
                             </Button>
                         </section>
                     </div>

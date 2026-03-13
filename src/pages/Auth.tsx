@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import '@/styles/Auth.css';
 import logo from '@/assets/logo.png';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -65,86 +66,95 @@ export default function Auth() {
 
   return (
     <div className="auth-page-wrapper">
+      <div className="absolute top-8 right-8 z-50">
+        <ThemeToggle />
+      </div>
       <div className="auth-container">
         <div className="auth-branding">
           <div className="logo-section animate-float">
-            <img src={logo} alt="Exotic Infotech" className="h-14 w-auto drop-shadow-2xl" />
-            <h1 className="text-3xl font-bold tracking-tighter text-white">Radius Check</h1>
+            <img src={logo} alt="Exotic Infotech" className="h-16 w-auto" />
+            <h1 className="text-4xl font-black tracking-tighter text-foreground">Radius Check</h1>
           </div>
 
-          <div className="space-y-6 mt-12 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 backdrop-blur-xl">
-            <h2 className="hero-title">
-              Precision Attendance <br />
-              <span className="text-primary">Defined.</span>
-            </h2>
-            <p className="hero-subtitle">
-              The industry standard for secure, GPS-verified workforce management. Effortless tracking, real-time insights.
-            </p>
+          <div className="space-y-8 mt-12 bg-muted/20 p-10 rounded-[3rem] border border-border backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
+            
+            <div className="relative space-y-6">
+              <h2 className="hero-title">
+                Precision Attendance <br />
+                <span className="text-primary">Reliability.</span>
+              </h2>
+              <p className="hero-subtitle">
+                The modern standard for secure, verified workforce management. Professional tracking with real-time analytics.
+              </p>
 
-            <div className="feature-highlights">
-              <div className="feature-item glass-card">
-                <Shield className="w-8 h-8 text-primary" />
-                <p className="font-bold text-white">Enterprise Security</p>
-                <p className="text-xs text-muted-foreground">JWT & RBAC Protected</p>
-              </div>
-              <div className="feature-item glass-card">
-                <CheckCircle2 className="w-8 h-8 text-primary" />
-                <p className="font-bold text-white">GPS Precision</p>
-                <p className="text-xs text-muted-foreground">Radius-locked verification</p>
+              <div className="feature-highlights">
+                <div className="feature-item">
+                  <Shield className="w-8 h-8 text-primary" />
+                  <p className="font-black uppercase tracking-widest text-[10px] text-muted-foreground mt-2">Security</p>
+                  <p className="font-bold">Enterprise Grade</p>
+                </div>
+                <div className="feature-item">
+                  <CheckCircle2 className="w-8 h-8 text-primary" />
+                  <p className="font-black uppercase tracking-widest text-[10px] text-muted-foreground mt-2">Accuracy</p>
+                  <p className="font-bold">Verified Logs</p>
+                </div>
               </div>
             </div>
           </div>
           
-          <div className="mt-8 relative h-64 rounded-3xl overflow-hidden border border-white/10 group">
-             <img 
-               src="/C:/Users/Manmeet_77/.gemini/antigravity/brain/4093e752-03dd-42ed-8b1b-fc5a9d8c2b57/professional_auth_hero_1773295950794.png" 
-               alt="Professional Hero" 
-               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-             />
-             <div className="absolute inset-0 bg-gradient-to-t from-[#020617] to-transparent opacity-60"></div>
+          <div className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-primary/5 border border-primary/10 w-fit">
+            <div className="flex -space-x-3">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="w-10 h-10 rounded-full border-4 border-background bg-muted flex items-center justify-center text-[10px] font-bold overflow-hidden">
+                  {i === 4 ? '+50' : <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20" />}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs font-bold text-muted-foreground">Join 500+ professionals using Radius Check</p>
           </div>
         </div>
 
-        <div className="flex items-center justify-center">
-          <div className="w-full">
-            <div className="text-center mb-8 lg:hidden">
-              <img src={logo} alt="Exotic Infotech" className="h-10 w-auto" />
-              <h1 className="text-2xl font-bold">Attendance System</h1>
+        <div className="flex items-center justify-center relative">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-10 lg:hidden">
+              <img src={logo} alt="Exotic Infotech" className="h-12 w-auto mx-auto mb-4" />
+              <h1 className="text-3xl font-black tracking-tighter">Radius Check</h1>
             </div>
 
-            <Card className="auth-form-card glass-card">
+            <Card className="auth-form-card">
               <CardHeader className="auth-form-header">
-                <CardTitle className="text-2xl">Sign In</CardTitle>
+                <CardTitle>Sign In</CardTitle>
                 <CardDescription>Enter your credentials to access your account</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
+                    <Label htmlFor="email" className="text-[10px] uppercase font-bold tracking-widest ml-1">Email Address</Label>
                     <div className="auth-input-group">
-                      <Mail className="auth-input-icon w-4 h-4" />
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="email"
                         type="email"
                         placeholder="name@company.com"
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
-                        className="pl-10"
+                        className="h-14 pl-12 bg-muted/50 border-border rounded-2xl focus:ring-primary/20"
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password" className="text-[10px] uppercase font-bold tracking-widest ml-1">Password</Label>
                     <div className="auth-input-group">
-                      <Lock className="auth-input-icon w-4 h-4" />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
-                        className="pl-10"
+                        className="h-14 pl-12 bg-muted/50 border-border rounded-2xl focus:ring-primary/20"
                         required
                       />
                       <Button
@@ -159,13 +169,13 @@ export default function Auth() {
                     </div>
                   </div>
                   <Button type="submit" className="auth-submit-btn" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Continue'}
-                    {!isLoading && <ArrowRight className="w-4 h-4" />}
+                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Continue <ArrowRight className="w-4 h-4 ml-1" /></>}
                   </Button>
                 </form>
 
                 <div className="auth-footer-text">
-                  <p>Contact your manager if you've lost access.</p>
+                  <p>Secured by Enterprise Infrastructure</p>
+                  <p className="mt-1">Contact your manager if you've lost access.</p>
                 </div>
               </CardContent>
             </Card>

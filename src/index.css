@@ -6,53 +6,80 @@
 
 @layer base {
   :root {
-    /* Premium LMS Palette: Deep Navy & Midnight */
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
-
-    --card: 224 71% 7%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 224 71% 4%;
-    --popover-foreground: 210 40% 98%;
-
-    /* Primary: Vibrant Cyan-Blue (#0EA5E9) */
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
     --primary: 199 89% 48%;
     --primary-foreground: 210 40% 98%;
-
-    /* Secondary: Soft Slate */
-    --secondary: 217 32% 17%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 32% 17%;
-    --muted-foreground: 215 20% 65%;
-
-    /* Accent: Electric Indigo */
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
     --accent: 250 84% 54%;
     --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 84% 60%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
-    /* Success: Emerald */
     --success: 142 70% 45%;
     --success-foreground: 210 40% 98%;
-
     --warning: 38 92% 50%;
     --warning-foreground: 48 96% 89%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 199 89% 48%;
+    --radius: 1rem;
 
+    /* Sidebar Customization (Light) */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 224 71.4% 4.1%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-accent: 220 14.3% 95.9%;
+    --sidebar-border: 220 13% 91%;
+
+    /* Glass Effects (Light) */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.05);
+    --glass-shadow: rgba(0, 0, 0, 0.05);
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 210 40% 98%;
+    --card: 224 71% 7%;
+    --card-foreground: 210 40% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 250 84% 54%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 70% 45%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 48 96% 89%;
     --border: 217 32% 17% / 0.5;
     --input: 217 32% 17%;
     --ring: 199 89% 48%;
 
-    --radius: 1rem;
-
-    /* Sidebar Customization */
+    /* Sidebar Customization (Dark) */
     --sidebar-background: 224 71% 3%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 199 89% 48%;
     --sidebar-accent: 217 32% 17%;
     --sidebar-border: 217 32% 17% / 0.3;
+
+    /* Glass Effects (Dark) */
+    --glass-bg: rgba(15, 23, 42, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: rgba(0, 0, 0, 0.4);
   }
 }
 

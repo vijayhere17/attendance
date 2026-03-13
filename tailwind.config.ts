@@ -122,22 +122,22 @@ export default {
     function ({ addUtilities }: any) {
       addUtilities({
         ".glass": {
-          background: "linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.4) 100%)",
+          background: "var(--glass-bg)",
           "backdrop-filter": "blur(12px)",
           "-webkit-backdrop-filter": "blur(12px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          "box-shadow": "0 4px 24px 0 rgba(0, 0, 0, 0.4)",
+          border: "1px solid var(--glass-border)",
+          "box-shadow": "0 4px 24px 0 var(--glass-shadow)",
         },
         ".glass-card": {
           position: "relative",
           overflow: "hidden",
           transition: "all 0.3s ease-in-out",
-          background: "linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%)",
-          border: "1px solid rgba(255, 255, 255, 0.05)",
+          background: "var(--glass-bg)",
+          border: "1px solid var(--glass-border)",
           "&:hover": {
             transform: "translateY(-4px)",
-            "border-color": "rgba(14, 165, 233, 0.3)",
-            "box-shadow": "0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(14, 165, 233, 0.1)",
+            "border-color": "hsl(var(--primary) / 0.3)",
+            "box-shadow": "0 12px 40px var(--glass-shadow), 0 0 20px hsl(var(--primary) / 0.1)",
           }
         },
         ".text-gradient": {

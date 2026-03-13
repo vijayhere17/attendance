@@ -205,23 +205,32 @@ export default function CheckInOut() {
   const limits = (profile as any)?.monthly_limits || { leave: 2, late: 3, wfh: 2 };
   const stats = (profile as any)?.month_stats || { leave: 0, late: 0, wfh: 0 };
 
+  const getAvatarSrc = (url: string | undefined) => {
+    if (!url) return `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email || 'user'}`;
+    if (url.startsWith('https://') || url.startsWith('http://')) return url;
+    const serverURL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+    return `${serverURL}${url}`;
+  };
+
   return (
     <Layout>
       <div className="check-in-container">
         <div className="check-in-header">
           <div className="header-user-info">
             <p className="greeting-text font-display">
-              Terminal Operational — {new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'}
+              System Dashboard — {new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'}
             </p>
             <div className="flex items-center gap-4">
               <Avatar className="w-12 h-12 border-2 border-primary/20">
-                <AvatarImage src={(profile as any)?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email}`} />
+                <AvatarImage src={getAvatarSrc((profile as any)?.avatar_url)} />
                 <AvatarFallback className="bg-primary/20 text-primary font-bold">
                   {(profile?.full_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="user-full-name font-display text-gradient">Agent {profile?.full_name?.split(' ')[0]}</h1>
+                <h1 className="user-full-name font-display text-gradient">
+                  {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'User'} {profile?.full_name?.split(' ')[0]}
+                </h1>
                 <p className="current-date">
                   <Calendar className="w-4 h-4 text-primary" />
                   {format(new Date(), 'EEEE, dd MMMM yyyy').toUpperCase()}
