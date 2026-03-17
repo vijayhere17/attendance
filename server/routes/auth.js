@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import Attendance from '../models/Attendance.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -154,8 +155,6 @@ router.post('/upload-avatar', protect, uploadAvatar.single('avatar'), async (req
     }
 });
 
-// Import Attendance for stats calculation
-import Attendance from '../models/Attendance.js';
 
 router.post('/change-password', protect, async (req, res) => {
     const { currentPassword, newPassword } = req.body;

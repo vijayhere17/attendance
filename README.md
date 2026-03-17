@@ -15,7 +15,7 @@
   - Export comprehensive attendance reports to **Excel**.
   - System-wide settings and notification management.
 - 🛡️ **Secure Backend**: JWT-based authentication and role-based access control (RBAC).
-
+ 
 ---
 
 ## 🛠️ Tech Stack

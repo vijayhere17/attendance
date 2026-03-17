@@ -46,24 +46,22 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const statsRes = await client.get('/admin/dashboard/stats');
+        const [statsRes, weeklyRes, topRes, activityRes] = await Promise.all([
+          client.get('/admin/dashboard/stats'),
+          client.get('/admin/dashboard/weekly'),
+          client.get('/admin/dashboard/top-performers'),
+          client.get('/admin/dashboard/activity'),
+        ]);
+
         setStats(statsRes.data);
-
-        const totalPresent = statsRes.data.present + statsRes.data.late;
-        const totalEmployees = statsRes.data.total;
-        setAttendanceRate(totalEmployees > 0 ? Math.round((totalPresent / totalEmployees) * 100) : 0);
-
-        const weeklyRes = await client.get('/admin/dashboard/weekly');
         setWeeklyData(weeklyRes.data);
-
-        const topRes = await client.get('/admin/dashboard/top-performers');
         setTopPerformers(topRes.data);
-
-        const activityRes = await client.get('/admin/dashboard/activity');
         setRecentRecords(activityRes.data);
 
+        const { present, late, total } = statsRes.data;
+        setAttendanceRate(total > 0 ? Math.round(((present + late) / total) * 100) : 0);
       } catch (error) {
-        console.error("Error fetching dashboard data", error);
+        console.error('Error fetching dashboard data', error);
       } finally {
         setLoading(false);
       }

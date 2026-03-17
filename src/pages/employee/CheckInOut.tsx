@@ -13,15 +13,12 @@ import {
   LogOut,
   Loader2,
   AlertCircle,
-  CheckCircle2,
   Navigation,
   Calendar,
   Timer,
   Fingerprint,
   Clock,
-  Briefcase,
   Pause,
-  Play
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, differenceInMinutes, differenceInHours } from 'date-fns';
@@ -68,6 +65,13 @@ interface ShiftConfig {
   };
 }
 
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 18) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
 export default function CheckInOut() {
   const { profile } = useAuth();
   const { getCurrentPosition, loading: geoLoading, error: geoError } = useGeolocation();
@@ -87,7 +91,7 @@ export default function CheckInOut() {
       const { data } = await client.get('/shifts/my-shift');
       setShiftConfig(data);
     } catch (error) {
-      console.error('Error fetching shift config:', error);
+      console.error('Failed to fetch shift config:', error);
     } finally {
       setShiftLoading(false);
     }
@@ -97,13 +101,13 @@ export default function CheckInOut() {
     if (!profile) return;
     try {
       const { data } = await client.get('/attendance/today');
-      // Handle both { record: ... } and direct record response for resilience
+      // API returns { record, wfh_count, wfh_limit } but older versions returned the record directly
       const record = data?.record !== undefined ? data.record : (data?._id ? data : null);
       setTodayRecord(record);
       setWfhCount(data.wfh_count || 0);
       setWfhLimit(data.wfh_limit || 2);
     } catch (error) {
-      console.error('Error fetching attendance:', error);
+      console.error('Failed to fetch today\'s attendance:', error);
     } finally {
       setLoading(false);
     }
@@ -138,8 +142,8 @@ export default function CheckInOut() {
         fetchTodayAttendance();
       }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to process attendance';
-      toast.error(errorMessage);
+      const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to process attendance';
+      toast.error(msg);
     } finally {
       setActionLoading(false);
     }
@@ -154,8 +158,7 @@ export default function CheckInOut() {
         fetchTodayAttendance();
       }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to resume break';
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || 'Failed to resume from break');
     } finally {
       setActionLoading(false);
     }
@@ -167,22 +170,19 @@ export default function CheckInOut() {
 
   const getWorkDuration = () => {
     if (!todayRecord?.check_in) return null;
-    let endTime = todayRecord.check_out ? new Date(todayRecord.check_out) : new Date();
     const startTime = new Date(todayRecord.check_in);
-
-    // Timer Fix: If on break, cap endTime at the break start (assuming 2:00 PM for now as per user)
-    // In a real system, we'd use the actual break start time from config.
+    // If still on break, don't count time past break start (2:00 PM)
+    let endTime = todayRecord.check_out ? new Date(todayRecord.check_out) : new Date();
     if (todayRecord.is_on_break) {
       const breakStart = new Date(endTime);
       breakStart.setHours(14, 0, 0, 0);
-      if (endTime > breakStart) {
-        endTime = breakStart;
-      }
+      if (endTime > breakStart) endTime = breakStart;
     }
 
-    const hours = differenceInHours(endTime, startTime);
-    const mins = differenceInMinutes(endTime, startTime) % 60;
-    return { hours, mins };
+    return {
+      hours: differenceInHours(endTime, startTime),
+      mins: differenceInMinutes(endTime, startTime) % 60,
+    };
   };
 
   const getShiftProgress = () => {
@@ -190,18 +190,14 @@ export default function CheckInOut() {
     const [endH, endM] = (profile.shift_end || '18:00:00').split(':').map(Number);
     const [startH, startM] = (profile.shift_start || '09:00:00').split(':').map(Number);
     const totalMinutes = (endH - startH) * 60 + (endM - startM);
-    
-    // Use the same paused logic for progress
     const duration = getWorkDuration();
     if (!duration) return 0;
-    const worked = duration.hours * 60 + duration.mins;
-    return Math.min(100, Math.round((worked / totalMinutes) * 100));
+    return Math.min(100, Math.round(((duration.hours * 60 + duration.mins) / totalMinutes) * 100));
   };
 
   const workDuration = getWorkDuration();
   const shiftProgress = getShiftProgress();
 
-  // Monthly Limits from profile
   const limits = (profile as any)?.monthly_limits || { leave: 2, late: 3, wfh: 2 };
   const stats = (profile as any)?.month_stats || { leave: 0, late: 0, wfh: 0 };
 
@@ -218,7 +214,7 @@ export default function CheckInOut() {
         <div className="check-in-header">
           <div className="header-user-info">
             <p className="greeting-text font-display">
-              System Dashboard — {new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'}
+              {getGreeting()}
             </p>
             <div className="flex items-center gap-4">
               <Avatar className="w-12 h-12 border-2 border-primary/20">
@@ -243,7 +239,7 @@ export default function CheckInOut() {
             <div className="time-card glass-card">
               <div className="flex items-center justify-between gap-12">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-2">Standard Time</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-2">Current Time</p>
                   <div className="live-clock-text">
                     <LiveClock showSeconds />
                   </div>
@@ -261,20 +257,20 @@ export default function CheckInOut() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <Card className="glass-card p-6 border-white/5 bg-white/2">
                 <div className="flex justify-between items-start mb-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">WFH Protocol</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">WFH This Month</p>
                   <Badge variant={stats.wfh >= limits.wfh ? "destructive" : "secondary"} className="text-[10px] py-0">
-                    {Math.max(0, limits.wfh - stats.wfh)} REMAINING
+                    {Math.max(0, limits.wfh - stats.wfh)} left
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <h3 className="text-2xl font-black text-white">{stats.wfh}/{limits.wfh}</h3>
                   <div className={`p-2 rounded-lg ${workMode === 'wfh' ? 'bg-primary/20 text-primary' : 'bg-white/5 text-muted-foreground'}`}>
                     <Navigation className="w-5 h-5 cursor-pointer" onClick={() => {
-                        if (canCheckIn && stats.wfh < limits.wfh) {
-                            setWorkMode(prev => prev === 'office' ? 'wfh' : 'office');
-                        } else if (canCheckIn) {
-                            toast.error('WFH monthly limit reached');
-                        }
+                      if (canCheckIn && stats.wfh < limits.wfh) {
+                        setWorkMode(prev => prev === 'office' ? 'wfh' : 'office');
+                      } else if (canCheckIn) {
+                        toast.error('WFH limit reached for this month');
+                      }
                     }} />
                   </div>
                 </div>
@@ -283,9 +279,9 @@ export default function CheckInOut() {
 
               <Card className="glass-card p-6 border-white/5 bg-white/2">
                 <div className="flex justify-between items-start mb-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Late Tolerance</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Late This Month</p>
                   <Badge variant={stats.late >= limits.late ? "destructive" : "secondary"} className="text-[10px] py-0">
-                    {Math.max(0, limits.late - stats.late)} REMAINING
+                    {Math.max(0, limits.late - stats.late)} left
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
@@ -299,9 +295,9 @@ export default function CheckInOut() {
 
               <Card className="glass-card p-6 border-white/5 bg-white/2">
                 <div className="flex justify-between items-start mb-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Leave Quota</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Leaves This Month</p>
                   <Badge variant={stats.leave >= limits.leave ? "destructive" : "secondary"} className="text-[10px] py-0">
-                    {Math.max(0, limits.leave - stats.leave)} REMAINING
+                    {Math.max(0, limits.leave - stats.leave)} left
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
@@ -320,10 +316,10 @@ export default function CheckInOut() {
                   <div>
                     <CardTitle className="text-4xl font-black tracking-tighter flex items-center gap-4 text-white">
                       <Fingerprint className="w-10 h-10 text-primary" />
-                      {isComplete ? 'Shift Logged' : canCheckOut ? 'Active Duty' : 'Command Center'}
+                      {isComplete ? 'Shift Complete' : canCheckOut ? 'Currently Working' : 'Check In / Out'}
                     </CardTitle>
                     <CardDescription className="text-muted-foreground font-medium mt-3 text-lg">
-                      {isComplete ? 'Your mission logs have been saved for the current cycle.' : 'Initialize biometric authentication to begin your shift.'}
+                      {isComplete ? 'Your attendance has been recorded for today.' : 'Mark your attendance for today\'s shift.'}
                     </CardDescription>
                   </div>
                   {todayRecord && (
@@ -337,7 +333,7 @@ export default function CheckInOut() {
                   <div className="flex items-center gap-4 p-8 bg-destructive/5 text-destructive rounded-[2rem] border border-destructive/20">
                     <AlertCircle className="w-6 h-6 shrink-0" />
                     <div>
-                      <p className="font-black uppercase tracking-widest text-xs mb-1">Navigation Error</p>
+                      <p className="font-black uppercase tracking-widest text-xs mb-1">Location Error</p>
                       <p className="font-medium opacity-80">{geoError}</p>
                     </div>
                   </div>
@@ -387,8 +383,8 @@ export default function CheckInOut() {
                         <Pause className="w-8 h-8" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-xl font-black text-white uppercase tracking-tighter">Standby Mode</p>
-                        <p className="text-sm text-muted-foreground font-medium">Standard break protocol active. System precision monitoring suspended.</p>
+                        <p className="text-xl font-black text-white uppercase tracking-tighter">On Break</p>
+                        <p className="text-sm text-muted-foreground font-medium">Mandatory break is active. Timer is paused.</p>
                       </div>
                       <Button
                         variant="ghost"
@@ -396,7 +392,7 @@ export default function CheckInOut() {
                         onClick={handleResumeBreak}
                         disabled={actionLoading}
                       >
-                        Resume Protocol
+                        Resume
                       </Button>
                     </div>
                   </div>
@@ -409,20 +405,20 @@ export default function CheckInOut() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000"></div>
                 <CardHeader className="pb-6">
                   <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-3">
-                    <Fingerprint className="w-4 h-4 text-primary" /> Shift Timeline
+                    <Fingerprint className="w-4 h-4 text-primary" /> Today's Times
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between p-5 bg-white/5 rounded-[1.5rem] border border-white/5 transition-colors hover:bg-white/10">
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Entry Gate</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Checked In</span>
                     <span className="text-xl font-black font-mono text-white">
-                      {todayRecord?.check_in ? format(new Date(todayRecord.check_in), 'hh:mm a') : 'LOCKED'}
+                      {todayRecord?.check_in ? format(new Date(todayRecord.check_in), 'hh:mm a') : '—'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between p-5 bg-white/5 rounded-[1.5rem] border border-white/5 transition-colors hover:bg-white/10">
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Exit Gate</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Checked Out</span>
                     <span className="text-xl font-black font-mono text-white">
-                      {todayRecord?.check_out ? format(new Date(todayRecord.check_out), 'hh:mm a') : 'ACTIVE'}
+                      {todayRecord?.check_out ? format(new Date(todayRecord.check_out), 'hh:mm a') : '—'}
                     </span>
                   </div>
                 </CardContent>
@@ -432,7 +428,7 @@ export default function CheckInOut() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000"></div>
                 <CardHeader className="pb-6">
                   <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-3">
-                    <Clock className="w-4 h-4 text-primary" /> Operational Status
+                    <Clock className="w-4 h-4 text-primary" /> Work Duration
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -444,7 +440,7 @@ export default function CheckInOut() {
                         </p>
                         <div className="text-right">
                           <p className="text-3xl font-black text-primary tracking-tighter">{shiftProgress}%</p>
-                          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Completed</p>
+                          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">of shift</p>
                         </div>
                       </div>
                       <div className="h-4 bg-white/5 rounded-full p-1 border border-white/5 shadow-inner">
@@ -457,7 +453,7 @@ export default function CheckInOut() {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground/40 italic">
                       <Timer className="w-12 h-12 mb-4 opacity-10 animate-spin-slow" />
-                      <p className="text-sm font-bold uppercase tracking-widest">Awaiting Manifest</p>
+                      <p className="text-sm font-bold uppercase tracking-widest">Not checked in yet</p>
                     </div>
                   )}
                 </CardContent>
@@ -471,7 +467,7 @@ export default function CheckInOut() {
             <Card className="glass-card overflow-hidden">
               <CardHeader className="border-b border-white/5 bg-white/2 pb-6">
                 <CardTitle className="text-xs font-black uppercase tracking-[0.2em] flex items-center gap-3 text-primary">
-                  <Clock className="w-4 h-4" /> Duty Manifest
+                  <Clock className="w-4 h-4" /> Today's Shift
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-8 space-y-6">
@@ -480,11 +476,11 @@ export default function CheckInOut() {
                 ) : shiftConfig ? (
                   <>
                     <div className="space-y-2">
-                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Operational Window</p>
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Shift Hours</p>
                       <p className="font-black text-2xl tracking-tighter text-white">{shiftConfig.formatted.shift_start} — {shiftConfig.formatted.shift_end}</p>
                     </div>
                     <div className="space-y-3">
-                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Unit Classification</p>
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Role / Batch</p>
                       <div className="flex gap-2">
                         <Badge variant="secondary" className="font-black px-4 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">{profile?.role?.toUpperCase()}</Badge>
                         {profile?.batch && <Badge variant="outline" className="font-black px-4 py-1.5 rounded-lg border-white/10 uppercase">{profile.batch}</Badge>}
@@ -492,12 +488,12 @@ export default function CheckInOut() {
                     </div>
                   </>
                 ) : (
-                  <p className="text-sm font-bold text-muted-foreground/50 italic py-4">No directive assigned for this cycle.</p>
+                  <p className="text-sm font-bold text-muted-foreground/50 italic py-4">No shift assigned.</p>
                 )}
                 <div className="pt-4">
                   <Button variant="ghost" className="w-full h-14 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest text-[10px] justify-between group" asChild>
                     <a href="/employee/history">
-                      Access Logs <Clock className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                      View History <Clock className="w-4 h-4 group-hover:rotate-12 transition-transform" />
                     </a>
                   </Button>
                 </div>
@@ -508,8 +504,4 @@ export default function CheckInOut() {
       </div>
     </Layout>
   );
-}
-
-function Separator() {
-  return <div className="h-px bg-border w-full my-4" />;
 }

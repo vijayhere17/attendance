@@ -10,8 +10,7 @@ import {
   Loader2,
   CheckCircle2,
   Clock,
-  LogOut as LogOutIcon,
-  MapPin,
+  Search,
   TrendingUp,
   Download,
   Filter
@@ -81,7 +80,7 @@ export default function History() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-1">
             <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-                Attendance History
+              Attendance History
             </Badge>
             <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter">My History</h1>
             <p className="text-muted-foreground font-medium max-w-md">Detailed record of your work history and attendance reliability.</p>
@@ -93,7 +92,7 @@ export default function History() {
             </Button>
             <div className="relative group">
               <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <select 
+              <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="h-12 pl-12 pr-6 rounded-2xl glass border-white/10 text-white font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-transparent cursor-pointer"
@@ -106,10 +105,10 @@ export default function History() {
               </select>
             </div>
             <div className="relative group flex-1 md:flex-none">
-              <LogOutIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors rotate-180" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <input
                 type="text"
-                placeholder="Search logs..."
+                placeholder="Search by date..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full md:w-64 h-12 pl-12 pr-6 rounded-2xl glass border-white/10 text-white font-medium placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -123,25 +122,25 @@ export default function History() {
             title="Total Sessions"
             value={stats.total}
             icon={<Calendar className="w-5 h-5" />}
-            className="rounded-[2rem] border-white/5 bg-white/5 shadow-2xl hover:scale-[1.02] transition-transform duration-500"
+            className="rounded-[2rem] border-white/5 bg-white/5 shadow-2xl hover:scale-[1.02] transition-transform duration-500 flex justify-center items-center"
           />
           <StatCard
             title="On Time"
             value={stats.present}
             icon={<CheckCircle2 className="w-5 h-5 text-success" />}
-            className="rounded-[2rem] border-white/5 bg-white/5 shadow-2xl hover:scale-[1.02] transition-transform duration-500"
+            className="rounded-[2rem] border-white/5 bg-white/5 shadow-2xl hover:scale-[1.02] transition-transform duration-500 flex justify-center items-center"
           />
           <StatCard
             title="Late Entries"
             value={stats.late}
             icon={<Clock className="w-5 h-5 text-warning" />}
-            className="rounded-[2rem] border-white/5 bg-white/5 shadow-2xl hover:scale-[1.02] transition-transform duration-500"
+            className="rounded-[2rem] border-white/5 bg-white/5 shadow-2xl hover:scale-[1.02] transition-transform duration-500 flex justify-center items-center"
           />
           <StatCard
             title="Efficiency Rate"
             value={`${attendanceRate}%`}
-            icon={<TrendingUp className="w-5 h-5 text-primary" />}
-            className="rounded-[2rem] border-white/5 bg-white/5 shadow-2xl hover:scale-[1.02] transition-transform duration-500"
+            icon={<TrendingUp className="w-5 h-5 text-primary " />}
+            className="rounded-[2rem] border-white/5 bg-white/5 shadow-2xl hover:scale-[1.02] transition-transform duration-500 flex justify-center items-center"
           />
         </div>
 
@@ -149,8 +148,8 @@ export default function History() {
           <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit">
             <div className="glass-card rounded-[2.5rem] border-white/5 p-8 shadow-2xl space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-black text-white tracking-tighter">Temporal View</h3>
-                <Badge className="bg-primary/10 text-primary border-none">Active</Badge>
+                <h3 className="text-xl font-black text-white tracking-tighter">Calendar</h3>
+                <Badge className="bg-primary/10 text-primary border-none">{format(currentDate, 'MMM yyyy')}</Badge>
               </div>
               <AttendanceCalendar
                 records={records}
@@ -185,15 +184,15 @@ export default function History() {
             <div className="glass-card rounded-[2.5rem] border-white/5 overflow-hidden shadow-2xl">
               <div className="p-8 border-b border-white/5 flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-black text-white tracking-tighter">Operational Logs</h3>
-                  <p className="text-muted-foreground font-medium text-sm">Detailed sequence for {format(currentDate, 'MMMM yyyy')}</p>
+                  <h3 className="text-2xl font-black text-white tracking-tighter">Attendance Records</h3>
+                  <p className="text-muted-foreground font-medium text-sm">{format(currentDate, 'MMMM yyyy')}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-4xl font-black text-white tracking-tighter leading-none">{filteredRecords.length}</p>
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">Found Entries</p>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">records</p>
                 </div>
               </div>
-              
+
               <div className="overflow-x-auto">
                 {loading ? (
                   <div className="flex items-center justify-center py-32">
@@ -205,7 +204,7 @@ export default function History() {
                       <Calendar className="w-10 h-10 text-muted-foreground/30 group-hover:text-primary/50 transition-colors" />
                     </div>
                     <div className="text-center">
-                      <p className="text-xl font-black text-white tracking-tighter">No encrypted logs found</p>
+                      <p className="text-xl font-black text-white tracking-tighter">No records found</p>
                       <p className="text-muted-foreground text-sm font-medium">Try adjusting your filters or search query.</p>
                     </div>
                   </div>
@@ -227,24 +226,24 @@ export default function History() {
                             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{format(parseISO(record.date), 'EEEE')}</p>
                           </TableCell>
                           <TableCell className="px-8 font-mono text-white/80 font-medium">
-                              {record.check_in ? (
-                                  <div className="flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-                                      {format(new Date(record.check_in), 'hh:mm a')}
-                                  </div>
-                              ) : (
-                                  <span className="opacity-20">--:--</span>
-                              )}
+                            {record.check_in ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                                {format(new Date(record.check_in), 'hh:mm a')}
+                              </div>
+                            ) : (
+                              <span className="opacity-20">--:--</span>
+                            )}
                           </TableCell>
                           <TableCell className="px-8 font-mono text-white/80 font-medium">
-                              {record.check_out ? (
-                                  <div className="flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-destructive/50" />
-                                      {format(new Date(record.check_out), 'hh:mm a')}
-                                  </div>
-                              ) : (
-                                  <span className="opacity-20">--:--</span>
-                              )}
+                            {record.check_out ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-destructive/50" />
+                                {format(new Date(record.check_out), 'hh:mm a')}
+                              </div>
+                            ) : (
+                              <span className="opacity-20">--:--</span>
+                            )}
                           </TableCell>
                           <TableCell className="px-8 text-right">
                             <StatusBadge status={record.status} size="sm" />
@@ -261,4 +260,4 @@ export default function History() {
       </div>
     </Layout>
   );
-}
+}

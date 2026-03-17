@@ -139,12 +139,7 @@ router.post('/settings/:key', protect, admin, async (req, res) => {
 router.get('/employees', protect, admin, async (req, res) => {
     try {
         const employees = await User.find({}).select('-password').sort({ createdAt: -1 });
-
-        const formatted = employees.map(user => {
-            return user.toObject();
-        });
-
-        res.json(formatted);
+        res.json(employees);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });

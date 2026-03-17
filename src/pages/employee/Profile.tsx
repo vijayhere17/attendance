@@ -60,11 +60,11 @@ export default function Profile() {
             });
         }
     }, [profile]);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [activities, setActivities] = useState<any[]>([]);
     const [loadingActivity, setLoadingActivity] = useState(false);
-    const [profileViewMode, setProfileViewMode] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
 
     useEffect(() => {
         const fetchActivity = async () => {
@@ -73,7 +73,7 @@ export default function Profile() {
                 const { data } = await client.get('/auth/profile/activity');
                 setActivities(data);
             } catch (error) {
-                console.error("Failed to load activity", error);
+                console.error('Failed to load activity', error);
             } finally {
                 setLoadingActivity(false);
             }
@@ -85,6 +85,13 @@ export default function Profile() {
         return name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
     };
 
+    const getAvatarSrc = (url: string | undefined) => {
+        if (!url) return `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email}`;
+        if (url.startsWith('https://') || url.startsWith('http://')) return url;
+        const serverURL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+        return `${serverURL}${url}`;
+    };
+
     const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -94,13 +101,10 @@ export default function Profile() {
 
         setUploading(true);
         try {
-            const { data } = await client.post('/auth/upload-avatar', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+            await client.post('/auth/upload-avatar', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
-            toast.success('Avatar uploaded successfully!');
-            // Update local state or reload
+            toast.success('Avatar updated!');
             window.location.reload();
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to upload avatar');
@@ -110,13 +114,13 @@ export default function Profile() {
     };
 
     const handleRandomAvatar = async () => {
-        const randomSeed = Math.random().toString(36).substring(7);
-        const newAvatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}`;
+        const seed = Math.random().toString(36).substring(7);
+        const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
         try {
-            await client.put('/auth/profile', { avatar_url: newAvatarUrl });
-            toast.success('Random avatar generated!');
+            await client.put('/auth/profile', { avatar_url: url });
+            toast.success('Random avatar applied!');
             window.location.reload();
-        } catch (err: any) {
+        } catch {
             toast.error('Failed to update avatar');
         }
     };
@@ -125,7 +129,7 @@ export default function Profile() {
         setUpdating(true);
         try {
             await client.put('/auth/profile', editForm);
-            toast.success('Profile updated successfully');
+            toast.success('Profile updated');
             window.location.reload();
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to update profile');
@@ -134,33 +138,31 @@ export default function Profile() {
         }
     };
 
-    const getAvatarSrc = (url: string | undefined) => {
-        if (!url) return `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email}`;
-        if (url.startsWith('https://') || url.startsWith('http://')) return url;
-        // Prefix local uploads with server URL
-        const serverURL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
-        return `${serverURL}${url}`;
+    const handlePasswordChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
+        const currentPassword = formData.get('currentPassword');
+        const newPassword = formData.get('newPassword');
+        const confirmPassword = formData.get('confirmPassword');
+
+        if (newPassword !== confirmPassword) {
+            toast.error('Passwords do not match');
+            return;
+        }
+
+        try {
+            await client.post('/auth/change-password', { currentPassword, newPassword });
+            toast.success('Password changed successfully');
+            (e.target as HTMLFormElement).reset();
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Failed to change password');
+        }
     };
 
     const stats = [
-        {
-            label: 'Current Streak',
-            value: `${profile?.current_streak || 0} Days`,
-            icon: Flame,
-            color: 'text-orange-500',
-        },
-        {
-            label: 'Total Attendance',
-            value: `${profile?.total_attendance || 0} Days`,
-            icon: Calendar,
-            color: 'text-blue-500',
-        },
-        {
-            label: 'Best Streak',
-            value: `${profile?.best_streak || 0} Days`,
-            icon: Trophy,
-            color: 'text-yellow-500',
-        },
+        { label: 'Current Streak', value: `${profile?.current_streak || 0} Days`, icon: Flame, color: 'text-orange-500' },
+        { label: 'Total Attendance', value: `${profile?.total_attendance || 0} Days`, icon: Calendar, color: 'text-blue-500' },
+        { label: 'Best Streak', value: `${profile?.best_streak || 0} Days`, icon: Trophy, color: 'text-yellow-500' },
         {
             label: 'On Time Rate',
             value: `${profile?.total_attendance ? Math.round(((profile.total_attendance - (profile.late_count || 0)) / profile.total_attendance) * 100) : 100}%`,
@@ -177,7 +179,7 @@ export default function Profile() {
                         <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
                         <div className="absolute top-8 right-8">
                             <Badge className="bg-success/20 text-success border border-success/30 px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px]">
-                                Authorized {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'User'}
+                                {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'User'}
                             </Badge>
                         </div>
                     </div>
@@ -204,7 +206,7 @@ export default function Profile() {
                                 <button
                                     onClick={handleRandomAvatar}
                                     className="p-3 bg-card text-foreground rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-background group"
-                                    title="Generate Random Avatar"
+                                    title="Random Avatar"
                                 >
                                     <Flame className="w-4 h-4 group-hover:animate-pulse" />
                                 </button>
@@ -240,42 +242,42 @@ export default function Profile() {
                                 <DialogTrigger asChild>
                                     <Button className="h-12 px-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold gap-2">
                                         <Settings className="w-4 h-4 text-primary" />
-                                        Configure Profile
+                                        Edit Profile
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-[500px] glass border-white/10 rounded-[2.5rem] p-0 overflow-hidden shadow-2xl">
                                     <div className="p-8 space-y-8">
                                         <div className="space-y-2">
                                             <h2 className="text-3xl font-black text-white tracking-tighter">Profile Settings</h2>
-                                            <p className="text-muted-foreground font-medium">Update your profile details and identity parameters.</p>
+                                            <p className="text-muted-foreground font-medium">Update your name, phone number, or avatar.</p>
                                         </div>
-                                        
+
                                         <div className="space-y-6">
                                             <div className="space-y-2">
                                                 <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Full Name</Label>
-                                                <Input 
-                                                    value={editForm.full_name} 
+                                                <Input
+                                                    value={editForm.full_name}
                                                     onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
                                                     className="h-14 bg-white/5 border-white/5 rounded-2xl focus:ring-primary/20 text-white font-medium pl-6"
                                                 />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Phone Number</Label>
-                                                <Input 
-                                                    value={editForm.phone_number} 
+                                                <Input
+                                                    value={editForm.phone_number}
                                                     onChange={(e) => setEditForm({...editForm, phone_number: e.target.value})}
                                                     className="h-14 bg-white/5 border-white/5 rounded-2xl focus:ring-primary/20 text-white font-medium pl-6"
                                                 />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Avatar URL</Label>
-                                                <Input 
-                                                    value={editForm.avatar_url} 
+                                                <Input
+                                                    value={editForm.avatar_url}
                                                     onChange={(e) => setEditForm({...editForm, avatar_url: e.target.value})}
                                                     className="h-14 bg-white/5 border-white/5 rounded-2xl focus:ring-primary/20 text-white font-medium pl-6"
                                                     placeholder="https://..."
                                                 />
-                                                <p className="text-[10px] text-muted-foreground ml-1">Leave blank to use dicebear random generation.</p>
+                                                <p className="text-[10px] text-muted-foreground ml-1">Leave blank to use a generated avatar.</p>
                                             </div>
                                         </div>
 
@@ -283,8 +285,8 @@ export default function Profile() {
                                             <DialogTrigger asChild>
                                                 <Button variant="outline" className="flex-1 h-14 rounded-2xl border-white/10 text-white font-bold">Cancel</Button>
                                             </DialogTrigger>
-                                            <Button 
-                                                onClick={handleUpdateProfile} 
+                                            <Button
+                                                onClick={handleUpdateProfile}
                                                 className="flex-1 h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-tighter"
                                                 disabled={updating}
                                             >
@@ -317,9 +319,9 @@ export default function Profile() {
                                 <div>
                                     <h2 className="text-2xl font-black text-white tracking-tighter flex items-center gap-2">
                                         <Trophy className="w-6 h-6 text-primary" />
-                                        Operational Merit
+                                        Achievements
                                     </h2>
-                                    <p className="text-muted-foreground font-medium">Achievements and certifications unlocked.</p>
+                                    <p className="text-muted-foreground font-medium">Milestones you've unlocked.</p>
                                 </div>
                                 <Badge variant="outline" className="border-white/10 rounded-lg">
                                     {achievements?.filter(a => a.unlocked_at).length || 0} Unlocked
@@ -351,20 +353,20 @@ export default function Profile() {
                         <section>
                             <div className="flex gap-2 mb-8 p-1 bg-muted/50 rounded-2xl border border-border w-fit">
                                 <button
-                                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${!profileViewMode ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'}`}
-                                    onClick={() => setProfileViewMode(false)}
+                                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${!showSettings ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'}`}
+                                    onClick={() => setShowSettings(false)}
                                 >
                                     Attendance Logs
                                 </button>
                                 <button
-                                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${profileViewMode ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'}`}
-                                    onClick={() => setProfileViewMode(true)}
+                                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${showSettings ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'}`}
+                                    onClick={() => setShowSettings(true)}
                                 >
                                     Account Settings
                                 </button>
                             </div>
 
-                            {!profileViewMode ? (
+                            {!showSettings ? (
                                 <div className="section-card shadow-2xl">
                                     {loadingActivity ? (
                                         <div className="flex justify-center py-12">
@@ -375,7 +377,7 @@ export default function Profile() {
                                             <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4 border border-border">
                                                 <Clock className="w-8 h-8" />
                                             </div>
-                                            <p className="font-bold text-foreground">No active history reported.</p>
+                                            <p className="font-bold text-foreground">No recent activity.</p>
                                         </div>
                                     ) : (
                                         <div className="activity-list">
@@ -386,7 +388,7 @@ export default function Profile() {
                                                     </div>
                                                     <div className="flex-1">
                                                         <p className="font-black text-foreground uppercase tracking-tighter">
-                                                            {activity.check_out ? 'Check-out Complete' : 'Check-in Confirmed'}
+                                                            {activity.check_out ? 'Checked Out' : 'Checked In'}
                                                         </p>
                                                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                                             {format(new Date(activity.date), 'MMMM d, yyyy')}
@@ -406,34 +408,15 @@ export default function Profile() {
                                         </div>
                                     )}
                                     <Button variant="ghost" className="w-full mt-6 h-12 rounded-2xl hover:bg-muted/50 text-muted-foreground hover:text-foreground font-bold uppercase tracking-widest text-[10px]">
-                                        Load Full Archive
+                                        Load More
                                     </Button>
                                 </div>
                             ) : (
                                 <div className="section-card shadow-2xl">
                                     <h3 className="text-xl font-black text-foreground tracking-tighter mb-6 flex items-center gap-2">
-                                        <Briefcase className="w-5 h-5 text-primary" /> Password Settings
+                                        <Briefcase className="w-5 h-5 text-primary" /> Change Password
                                     </h3>
-                                    <form onSubmit={async (e) => {
-                                        e.preventDefault();
-                                        const formData = new FormData(e.currentTarget as HTMLFormElement);
-                                        const currentPassword = formData.get('currentPassword');
-                                        const newPassword = formData.get('newPassword');
-                                        const confirmPassword = formData.get('confirmPassword');
-
-                                        if (newPassword !== confirmPassword) {
-                                            toast.error('Passwords do not match');
-                                            return;
-                                        }
-
-                                        try {
-                                            await client.post('/auth/change-password', { currentPassword, newPassword });
-                                            toast.success('Password changed successfully');
-                                            (e.target as HTMLFormElement).reset();
-                                        } catch (err: any) {
-                                            toast.error(err.response?.data?.message || 'Failed to change password');
-                                        }
-                                    }} className="space-y-6">
+                                    <form onSubmit={handlePasswordChange} className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
                                                 <Label className="text-foreground text-[10px] uppercase font-bold tracking-widest">Current Password</Label>
@@ -464,12 +447,12 @@ export default function Profile() {
                             </h3>
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Employee Token ID</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Employee ID</p>
                                     <p className="font-mono text-[10px] text-foreground/50 bg-muted/50 p-3 rounded-xl border border-border break-all leading-relaxed">{profile?._id}</p>
                                 </div>
                                 <div className="h-px bg-white/5" />
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Joining Date</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Joined</p>
                                     <p className="text-lg font-black text-foreground tracking-tighter">January 10, 2026</p>
                                 </div>
                                 <div className="h-px bg-white/5" />
@@ -487,7 +470,7 @@ export default function Profile() {
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
                             <h3 className="text-xl font-black text-foreground tracking-tighter mb-6">HR Support</h3>
                             <p className="text-sm text-muted-foreground font-medium mb-8 leading-relaxed">
-                                Need to update your profile or having technical issues? Contact HR Support.
+                                Need to update your details or having issues? Reach out to HR.
                             </p>
                             <Button className="w-full h-14 rounded-2xl bg-muted/50 border border-border hover:bg-muted text-foreground font-black uppercase tracking-widest text-xs shadow-xl">
                                 Contact HR
