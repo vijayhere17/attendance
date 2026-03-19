@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,9 +31,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import '@/styles/Attendance.css';
+interface AdminAttendanceRecord {
+  _id: string;
+  date: string;
+  status: string;
+  break_minutes?: number;
+  worked_minutes?: number;
+  work_mode?: string;
+  is_policy_violation?: boolean;
+  user?: {
+    full_name?: string;
+    email?: string;
+    role?: string;
+    batch?: string;
+  };
+}
 
 export default function AdminAttendance() {
-  const [records, setRecords] = useState<any[]>([]);
+  const [records, setRecords] = useState<AdminAttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [startDate, setStartDate] = useState(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd'));
@@ -42,7 +57,7 @@ export default function AdminAttendance() {
   const [shiftFilter, setShiftFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await client.get('/admin/attendance', {
@@ -59,9 +74,9 @@ export default function AdminAttendance() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate, shiftFilter]);
 
-  useEffect(() => { fetchRecords(); }, [startDate, endDate, shiftFilter]);
+  useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
   const handleExport = async () => {
     setExporting(true);

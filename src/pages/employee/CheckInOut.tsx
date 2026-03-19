@@ -43,6 +43,15 @@ interface TodayAttendance {
   break_start?: string;
 }
 
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+      error?: string;
+    };
+  };
+}
+
 interface ShiftConfig {
   role: string;
   batch: string | null;
@@ -143,8 +152,9 @@ export default function CheckInOut() {
         toast.success(data.message);
         fetchTodayAttendance();
       }
-    } catch (error: any) {
-      const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to process attendance';
+    } catch (error) {
+      const err = error as ApiError;
+      const msg = err.response?.data?.error || err.response?.data?.message || 'Failed to process attendance';
       toast.error(msg);
     } finally {
       setActionLoading(false);
@@ -159,8 +169,9 @@ export default function CheckInOut() {
         toast.success(data.message);
         fetchTodayAttendance();
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to start break');
+    } catch (error) {
+      const err = error as ApiError;
+      toast.error(err.response?.data?.message || 'Failed to start break');
     } finally {
       setActionLoading(false);
     }
@@ -174,8 +185,9 @@ export default function CheckInOut() {
         toast.success(data.message);
         fetchTodayAttendance();
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to resume from break');
+    } catch (error) {
+      const err = error as ApiError;
+      toast.error(err.response?.data?.message || 'Failed to resume from break');
     } finally {
       setActionLoading(false);
     }
@@ -189,16 +201,16 @@ export default function CheckInOut() {
     if (!todayRecord?.check_in) return null;
     const startTime = new Date(todayRecord.check_in);
     let endTime = todayRecord.check_out ? new Date(todayRecord.check_out) : new Date();
-    
+
     // Total break minutes already stored + current break if active
-    let breakTotal = todayRecord.break_minutes || 0;
-    
+    const breakTotal = todayRecord.break_minutes || 0;
+
     if (todayRecord.is_on_break && todayRecord.break_start) {
       const breakStart = new Date(todayRecord.break_start);
       // While on break, work timer ends at break start
       endTime = breakStart;
     }
-    
+
     const diffMins = differenceInMinutes(endTime, startTime) - breakTotal;
 
     return {
@@ -230,8 +242,8 @@ export default function CheckInOut() {
   const workDuration = getWorkDuration();
   const shiftProgress = getShiftProgress();
 
-  const limits = (profile as any)?.monthly_limits || { leave: 2, late: 3, wfh: 2 };
-  const stats = (profile as any)?.month_stats || { leave: 0, late: 0, wfh: 0 };
+  const limits = (profile)?.monthly_limits || { leave: 2, late: 3, wfh: 2 };
+  const stats = (profile)?.month_stats || { leave: 0, late: 0, wfh: 0 };
 
   const getAvatarSrc = (url: string | undefined) => {
     if (!url) return `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email || 'user'}`;
@@ -250,7 +262,7 @@ export default function CheckInOut() {
             </p>
             <div className="flex items-center gap-4">
               <Avatar className="w-12 h-12 border-2 border-primary/20">
-                <AvatarImage src={getAvatarSrc((profile as any)?.avatar_url)} />
+                <AvatarImage src={getAvatarSrc((profile)?.avatar_url)} />
                 <AvatarFallback className="bg-primary/20 text-primary font-bold">
                   {(profile?.full_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
                 </AvatarFallback>
@@ -444,9 +456,9 @@ export default function CheckInOut() {
                         <Badge variant="destructive" className="animate-pulse">LIMIT EXCEEDED</Badge>
                       )}
                     </div>
-                    <Progress 
-                      value={Math.min(100, (getBreakTime() / 45) * 100)} 
-                      className={`h-2 mt-4 ${getBreakTime() > 45 ? 'bg-destructive/20' : ''}`} 
+                    <Progress
+                      value={Math.min(100, (getBreakTime() / 45) * 100)}
+                      className={`h-2 mt-4 ${getBreakTime() > 45 ? 'bg-destructive/20' : ''}`}
                     />
                   </div>
                 )}

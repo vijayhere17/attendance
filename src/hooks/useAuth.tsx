@@ -16,10 +16,20 @@ interface Profile {
   best_streak?: number;
   total_attendance?: number;
   late_count?: number;
-  notification_preferences?: any;
+  notification_preferences?;
   avatar_url?: string;
   wfh_enabled?: boolean;
   phone_number?: string;
+  monthly_limits?: {
+    leave: number;
+    late: number;
+    wfh: number;
+  };
+  month_stats?: {
+    leave: number;
+    late: number;
+    wfh: number;
+  };
 }
 
 interface AuthContextType {
@@ -74,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('token', data.token);
       setUser(data);
       toast.success('Logged in successfully!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Login error:', error);
       if (!error.response) {
         toast.error('Network Error: Cannot reach the server. Please check VITE_API_URL configuration.');
@@ -95,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('token', data.token);
       setUser(data);
       toast.success('Account created successfully!');
-    } catch (error: any) {
+    } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed');
       throw error;
     }
