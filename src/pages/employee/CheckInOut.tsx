@@ -430,7 +430,7 @@ export default function CheckInOut() {
                         <p className="text-2xl font-black uppercase tracking-tighter text-white">
                           {todayRecord?.is_on_break ? 'Resume' : 'Break'}
                         </p>
-                        <p className="text-[10px] font-bold text-muted-foreground tracking-widest mt-1">
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-widest mt-1 ">
                           {todayRecord?.is_on_break ? '' : ''}
                         </p>
                       </div>
