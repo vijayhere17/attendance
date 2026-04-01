@@ -248,7 +248,13 @@ export default function CheckInOut() {
   const getAvatarSrc = (url: string | undefined) => {
     if (!url) return `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email || 'user'}`;
     if (url.startsWith('https://') || url.startsWith('http://')) return url;
-    const serverURL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+    
+    // Correctly derive server URL from VITE_API_URL or current origin
+    const apiURL = import.meta.env.VITE_API_URL || '/api';
+    const serverURL = apiURL.includes('://') 
+        ? apiURL.replace('/api', '') 
+        : window.location.origin;
+        
     return `${serverURL}${url}`;
   };
 
