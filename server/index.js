@@ -29,7 +29,8 @@ const app = express();
 
 // ✅ FIXED CORS (IMPORTANT)
 app.use(cors({
-  origin: "*"
+  origin: "https://attendance.exoticinfotech.com",
+  credentials: true
 }));
 
 // Middleware
