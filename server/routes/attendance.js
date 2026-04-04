@@ -7,6 +7,18 @@ import { protect } from '../middleware/authMiddleware.js';
 import { sendCheckInConfirmation, sendCheckOutConfirmation } from '../services/emailService.js';
 
 const router = express.Router();
+// ✅ ADD THIS FUNCTION (MISSING FUNCTION FIX)
+async function getShiftConfig(user) {
+    const query = { role: user.role };
+
+    if (user.role === 'intern') {
+        query.batch = user.batch;
+    } else {
+        query.batch = null;
+    }
+
+    return await ShiftConfig.findOne(query);
+}
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
