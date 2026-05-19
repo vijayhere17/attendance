@@ -123,9 +123,9 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 blurred-card background-color : rgba(178, 168, 235, 0.6);">
           <StatCard
-            title="Total Workforce"
+            title="Total Team"
             value={stats.total}
             icon={<Users className="w-5 h-5" />}
             description="Active accounts"

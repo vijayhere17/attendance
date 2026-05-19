@@ -104,148 +104,96 @@ export default function Auth() {
   }
 
   return (
-    <div className="auth-page-wrapper">
-      <div className="auth-container">
-        <div className="auth-branding">
-          <div className="logo-section animate-float">
-            <img src={logo} alt="Exotic Infotech" className="h-16 w-auto" />
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center space-y-2">
+          <img src={logo} alt="Exotic Infotech" className="h-10 w-auto mx-auto mb-6" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            {isRegistering ? 'Create Admin Account' : 'Sign in to your account'}
+          </h1>
+          <p className="text-sm text-slate-500">
+            {isRegistering
+              ? 'Set up the primary administrator account for the system'
+              : 'Enter your credentials to access the attendance portal'}
+          </p>
+        </div>
 
-          <div className="space-y-8 mt-12 bg-muted/20 p-10 rounded-[3rem] border border-border backdrop-blur-xl relative overflow-hidden group">
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
-
-            <div className="relative space-y-6">
-              <h2 className="hero-title">
-                Precision Attendance <br />
-                <span className="text-primary">Reliability.</span>
-              </h2>
-              <p className="hero-subtitle">
-                The modern standard for secure, verified workforce management. Professional tracking with real-time analytics.
-              </p>
-
-              <div className="feature-highlights">
-                <div className="feature-item">
-                  <Shield className="w-8 h-8 text-primary" />
-                  <p className="font-black uppercase tracking-widest text-[10px] text-muted-foreground mt-2">Security</p>
-                  <p className="font-bold">Enterprise Grade</p>
+        <Card className="border-slate-200 shadow-sm rounded-lg overflow-hidden">
+          <CardContent className="p-8">
+            <form onSubmit={handleAuth} className="space-y-6">
+              {isRegistering && (
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-sm font-medium text-slate-700">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Admin User"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="h-11 border-slate-200 rounded-md focus:ring-slate-900"
+                    required
+                  />
                 </div>
-                <div className="feature-item">
-                  <CheckCircle2 className="w-8 h-8 text-primary" />
-                  <p className="font-black uppercase tracking-widest text-[10px] text-muted-foreground mt-2">Accuracy</p>
-                  <p className="font-bold">Verified Logs</p>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@company.com"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="h-11 border-slate-200 rounded-md focus:ring-slate-900"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="password" className="text-sm font-medium text-slate-700">Password</Label>
+                  {!isRegistering && (
+                    <Link to="/forgot-password" title="Forgot Password" className="text-xs font-medium text-slate-600 hover:text-slate-900">
+                      Forgot?
+                    </Link>
+                  )}
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="h-11 border-slate-200 rounded-md pr-10 focus:ring-slate-900"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
-            </div>
-          </div>
+              <Button type="submit" className="w-full h-11 bg-slate-900 text-white hover:bg-slate-800 rounded-md font-medium transition-colors" disabled={isLoading}>
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {isRegistering ? 'Register Administrator' : 'Sign In'}
+              </Button>
+            </form>
 
-          
-        </div>
+            {!adminExists && (
+              <div className="mt-6 p-4 rounded-md bg-amber-50 border border-amber-100">
+                <p className="text-xs font-medium text-amber-800 text-center">
+                  SYSTEM SETUP: No administrator detected.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-        <div className="flex items-center justify-center relative">
-          <div className="w-full max-w-md">
-            <div className="text-center mb-10 lg:hidden">
-              <img src={logo} alt="Exotic Infotech" className="h-12 w-auto mx-auto mb-4" />
-            </div>
-
-            <Card className="auth-form-card">
-              <CardHeader className="auth-form-header">
-                <CardTitle>{isRegistering ? 'Admin Registration' : 'Sign In'}</CardTitle>
-                <CardDescription>
-                  {isRegistering
-                    ? 'Create the first administrator account to set up your system'
-                    : 'Enter your credentials to access your account'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleAuth} className="space-y-6">
-                  {isRegistering && (
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName" className="text-[10px] uppercase font-bold tracking-widest ml-1">Full Name</Label>
-                      <div className="auth-input-group">
-                        <ArrowRight className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rotate-[-45deg]" />
-                        <Input
-                          id="fullName"
-                          type="text"
-                          placeholder="Admin User"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          className="h-14 pl-12 bg-muted/50 border-border rounded-2xl focus:ring-primary/20"
-                          required
-                        />
-                      </div>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-[10px] uppercase font-bold tracking-widest ml-1">Email Address</Label>
-                    <div className="auth-input-group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="name@company.com"
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                        className="h-14 pl-12 bg-muted/50 border-border rounded-2xl focus:ring-primary/20"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-[10px] uppercase font-bold tracking-widest ml-1">Password</Label>
-                    <div className="auth-input-group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        className="h-14 pl-12 bg-muted/50 border-border rounded-2xl focus:ring-primary/20"
-                        required
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="password-toggle"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                    {!isRegistering && (
-                      <div className="flex justify-end mt-1">
-                        <Link to="/forgot-password" className="text-xs font-semibold text-primary hover:underline">
-                          Forgot Password?
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                  <Button type="submit" className="auth-submit-btn" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
-                      {isRegistering ? 'Create Admin Account' : 'Continue'} <ArrowRight className="w-4 h-4 ml-1" />
-                    </>}
-                  </Button>
-                </form>
-
-                {adminExists && (
-                  <div className="auth-footer-text">
-                    <p>Secured by Enterprise Infrastructure</p>
-                    <p className="mt-1">Contact your manager if you've lost access.</p>
-                  </div>
-                )}
-
-                {!adminExists && (
-                  <div className="mt-6 p-4 rounded-xl bg-primary/5 border border-primary/10">
-                    <p className="text-xs font-medium text-center text-primary">
-                      SYSTEM SETUP MODE: No administrator found. Please create the first account.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <p className="text-center text-xs text-slate-400">
+          Precision Attendance System &copy; {new Date().getFullYear()} Exotic Infotech
+        </p>
       </div>
     </div>
   );
