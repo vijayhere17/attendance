@@ -184,30 +184,24 @@ export default function Profile() {
 
     return (
         <Layout>
-            <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-6">
+            <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 space-y-8 animate-in fade-in duration-500">
                 
                 {/* Header Profile Section */}
-                <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                    <div className="h-32 bg-primary/5 relative border-b border-border">
-                        <div className="absolute top-4 right-4">
-                            <Badge className="bg-success/10 text-success hover:bg-success/20 border-none px-3 font-semibold uppercase tracking-wider text-[10px]">
-                                {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'User'}
-                            </Badge>
-                        </div>
-                    </div>
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="h-24 bg-slate-900 relative" />
 
-                    <div className="px-6 pb-6 relative flex flex-col md:flex-row items-center md:items-end gap-6">
-                        <div className="relative -mt-16 group">
-                            <div className="w-32 h-32 rounded-xl border-4 border-background bg-card shadow-sm relative overflow-hidden">
-                                <Avatar className="w-full h-full rounded-lg">
+                    <div className="px-8 pb-8 relative flex flex-col md:flex-row items-center md:items-end gap-6">
+                        <div className="relative -mt-12">
+                            <div className="w-32 h-32 rounded-lg border-4 border-white bg-slate-100 shadow-sm relative overflow-hidden">
+                                <Avatar className="w-full h-full rounded-none">
                                     {uploading ? (
-                                        <div className="flex items-center justify-center w-full h-full bg-muted">
-                                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                        <div className="flex items-center justify-center w-full h-full">
+                                            <Loader2 className="w-6 h-6 animate-spin text-slate-300" />
                                         </div>
                                     ) : (
                                         <>
                                             <AvatarImage src={getAvatarSrc(profile?.avatar_url)} className="object-cover" />
-                                            <AvatarFallback className="bg-primary/5 text-primary text-3xl font-bold">
+                                            <AvatarFallback className="bg-slate-100 text-slate-400 text-3xl font-bold">
                                                 {getInitials(profile?.full_name || '')}
                                             </AvatarFallback>
                                         </>
@@ -216,15 +210,8 @@ export default function Profile() {
                             </div>
                             <div className="absolute -bottom-2 -right-2 flex gap-1">
                                 <button
-                                    onClick={handleRandomAvatar}
-                                    className="p-2 bg-card text-foreground rounded-lg shadow-sm border border-border hover:bg-muted transition-colors"
-                                    title="Random Avatar"
-                                >
-                                    <Flame className="w-4 h-4 text-orange-500" />
-                                </button>
-                                <button
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="p-2 bg-primary text-primary-foreground rounded-lg shadow-sm hover:bg-primary/90 transition-colors"
+                                    className="p-2 bg-white text-slate-900 rounded-md shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors"
                                     title="Upload Photo"
                                 >
                                     <Camera className="w-4 h-4" />
@@ -233,88 +220,54 @@ export default function Profile() {
                             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarUpload} />
                         </div>
 
-                        <div className="flex-1 text-center md:text-left mb-2 md:mb-0">
-                            <h1 className="text-2xl font-bold text-foreground tracking-tight mb-2">{profile?.full_name}</h1>
-                            <div className="flex flex-wrap justify-center md:justify-start gap-2 items-center">
-                                <Badge variant="secondary" className="gap-1.5 font-medium px-2 py-0.5 text-xs rounded-md">
-                                    <Mail className="w-3 h-3 text-muted-foreground" />
+                        <div className="flex-1 text-center md:text-left">
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{profile?.full_name}</h1>
+                            <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2">
+                                <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium">
+                                    <Mail className="w-3.5 h-3.5" />
                                     {profile?.email}
-                                </Badge>
-                                <Badge variant="secondary" className="gap-1.5 font-semibold px-2 py-0.5 text-[10px] uppercase tracking-wider rounded-md text-primary">
-                                    <Briefcase className="w-3 h-3" />
+                                </div>
+                                <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium uppercase tracking-wider">
+                                    <Briefcase className="w-3.5 h-3.5" />
                                     {profile?.role}
-                                </Badge>
-                                <div className="hidden md:block h-3 w-px bg-border mx-1" />
-                                <p className="text-xs font-mono text-muted-foreground">ID: {profile?._id.slice(-8).toUpperCase()}</p>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-slate-400 text-xs font-mono lowercase">
+                                    id_{profile?._id.slice(-6)}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="w-full md:w-auto mb-2 md:mb-0">
-                            <Dialog>
+                        <div className="flex gap-2">
+                           <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button variant="outline" className="w-full md:w-auto h-10 px-4 rounded-lg bg-card border-border hover:bg-muted text-foreground font-medium gap-2 shadow-sm">
-                                        <Settings className="w-4 h-4" />
-                                        Edit Profile
+                                    <Button variant="outline" size="sm" className="h-9 px-4 rounded-md font-bold uppercase tracking-widest text-[10px] gap-2">
+                                        <Settings className="w-3.5 h-3.5" />
+                                        Config
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-[425px] rounded-xl p-0 overflow-hidden shadow-lg border-border">
-                                    <div className="p-6 space-y-6">
-                                        <div className="space-y-1">
-                                            <h2 className="text-xl font-bold text-foreground tracking-tight">Profile Settings</h2>
-                                            <p className="text-muted-foreground text-sm">Update your name, phone number, or avatar.</p>
+                                <DialogContent className="sm:max-w-[400px] rounded-lg">
+                                    <DialogHeader>
+                                        <DialogTitle className="text-base font-bold text-slate-900">Update Profile</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-bold uppercase text-slate-500">Legal Name</Label>
+                                            <Input value={editForm.full_name} onChange={(e) => setEditForm({...editForm, full_name: e.target.value})} className="h-10 rounded-md" />
                                         </div>
-
-                                        <div className="space-y-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-xs font-semibold text-foreground">Full Name</Label>
-                                                <Input
-                                                    value={editForm.full_name}
-                                                    onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
-                                                    className="h-10 rounded-md focus-visible:ring-1 focus-visible:ring-primary"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs font-semibold text-foreground">Phone Number</Label>
-                                                <Input
-                                                    value={editForm.phone_number}
-                                                    onChange={(e) => setEditForm({...editForm, phone_number: e.target.value})}
-                                                    className="h-10 rounded-md focus-visible:ring-1 focus-visible:ring-primary"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs font-semibold text-foreground">Email Address</Label>
-                                                <Input
-                                                    value={editForm.email}
-                                                    onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                                                    className="h-10 rounded-md focus-visible:ring-1 focus-visible:ring-primary"
-                                                    type="email"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs font-semibold text-foreground">Avatar URL</Label>
-                                                <Input
-                                                    value={editForm.avatar_url}
-                                                    onChange={(e) => setEditForm({...editForm, avatar_url: e.target.value})}
-                                                    className="h-10 rounded-md focus-visible:ring-1 focus-visible:ring-primary"
-                                                    placeholder="https://..."
-                                                />
-                                                <p className="text-[10px] text-muted-foreground">Leave blank to use a generated avatar.</p>
-                                            </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-bold uppercase text-slate-500">Contact</Label>
+                                            <Input value={editForm.phone_number} onChange={(e) => setEditForm({...editForm, phone_number: e.target.value})} className="h-10 rounded-md" />
                                         </div>
-
-                                        <div className="flex gap-3 pt-2">
-                                            <DialogTrigger asChild>
-                                                <Button variant="outline" className="flex-1 h-10 rounded-lg">Cancel</Button>
-                                            </DialogTrigger>
-                                            <Button
-                                                onClick={handleUpdateProfile}
-                                                className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                                                disabled={updating}
-                                            >
-                                                {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
-                                            </Button>
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-bold uppercase text-slate-500">Avatar Source</Label>
+                                            <Input value={editForm.avatar_url} onChange={(e) => setEditForm({...editForm, avatar_url: e.target.value})} className="h-10 rounded-md" placeholder="HTTPS source" />
                                         </div>
                                     </div>
+                                    <DialogFooter>
+                                        <Button onClick={handleUpdateProfile} disabled={updating} className="w-full h-10 bg-slate-900 text-white rounded-md font-bold">
+                                            {updating ? 'Syncing...' : 'Commit Changes'}
+                                        </Button>
+                                    </DialogFooter>
                                 </DialogContent>
                             </Dialog>
                         </div>
@@ -324,195 +277,125 @@ export default function Profile() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {stats.map((stat, index) => (
-                        <div key={index} className="bg-card border border-border p-5 rounded-xl shadow-sm text-center">
-                            <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-muted/50 flex items-center justify-center border border-border">
-                                <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                            </div>
-                            <p className="text-lg font-bold text-foreground leading-tight">{stat.value}</p>
-                            <p className="text-xs font-medium text-muted-foreground mt-1">{stat.label}</p>
+                        <div key={index} className="bg-white border border-slate-200 p-6 rounded-lg shadow-sm">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
+                            <h3 className="text-xl font-bold text-slate-900">{stat.value}</h3>
                         </div>
                     ))}
                 </div>
 
-                {/* Main Content Area */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-                    
-                    {/* Left Column (Activities/Settings) */}
-                    <div className="md:col-span-8 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                    <div className="md:col-span-8 space-y-8">
                         
-                        {/* Achievements Card */}
-                        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-                            <div className="flex items-center justify-between mb-6">
-                                <div>
-                                    <h2 className="text-lg font-bold text-foreground tracking-tight flex items-center gap-2">
-                                        <Trophy className="w-5 h-5 text-primary" />
-                                        Achievements
-                                    </h2>
-                                    <p className="text-muted-foreground text-sm mt-0.5">Milestones you've unlocked</p>
-                                </div>
-                                <Badge variant="secondary" className="rounded-md">
-                                    {achievements?.filter(a => a.unlocked_at).length || 0} Unlocked
-                                </Badge>
+                        {/* Achievements */}
+                        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+                            <div className="p-4 border-b border-slate-50 flex items-center justify-between">
+                                <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Professional Milestones</h2>
                             </div>
-
-                            {loadingAchievements ? (
-                                <div className="flex justify-center py-8">
-                                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    {achievements?.map((achievement) => (
-                                        <div key={achievement.id} className="flex flex-col items-center p-3 rounded-lg border border-border bg-muted/20 hover:bg-muted/50 transition-colors">
-                                            <AchievementBadge
-                                                type={achievement.type}
-                                                unlocked={!!achievement.unlocked_at}
-                                                date={achievement.unlocked_at ? format(new Date(achievement.unlocked_at), 'MMM d, yyyy') : undefined}
-                                            />
-                                            <p className={`mt-2 text-[10px] font-bold uppercase tracking-wider text-center ${achievement.unlocked_at ? 'text-foreground' : 'text-muted-foreground/50'}`}>
-                                                {achievement.type.replace('_', ' ')}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            <div className="p-6">
+                                {loadingAchievements ? (
+                                    <Loader2 className="w-6 h-6 animate-spin text-slate-100 mx-auto" />
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                        {achievements?.map((achievement) => (
+                                            <div key={achievement.id} className="flex flex-col items-center p-4 rounded-md border border-slate-100 bg-slate-50/50">
+                                                <AchievementBadge
+                                                    type={achievement.type}
+                                                    unlocked={!!achievement.unlocked_at}
+                                                    date={achievement.unlocked_at ? format(new Date(achievement.unlocked_at), 'MMM d') : undefined}
+                                                />
+                                                <span className={`mt-3 text-[9px] font-bold uppercase tracking-tighter text-center ${achievement.unlocked_at ? 'text-slate-900' : 'text-slate-300'}`}>
+                                                    {achievement.type.replace('_', ' ')}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Recent Activity / Settings Toggler */}
-                        <div>
-                            <div className="flex gap-1 mb-4 p-1 bg-muted rounded-lg border border-border w-fit">
-                                <button
-                                    className={`px-4 py-1.5 rounded-md font-semibold text-xs sm:text-sm transition-all ${!showSettings ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                                    onClick={() => setShowSettings(false)}
-                                >
-                                    Activity Logs
-                                </button>
-                                <button
-                                    className={`px-4 py-1.5 rounded-md font-semibold text-xs sm:text-sm transition-all ${showSettings ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                                    onClick={() => setShowSettings(true)}
-                                >
-                                    Security
-                                </button>
-                            </div>
-
-                            {!showSettings ? (
-                                <div className="bg-card rounded-xl border border-border p-0 shadow-sm overflow-hidden">
-                                    <div className="p-5 border-b border-border bg-muted/10">
-                                        <h3 className="text-base font-semibold text-foreground">Recent Activity</h3>
-                                    </div>
-                                    <div className="p-5">
+                        {/* Activity & Security */}
+                        <Tabs defaultValue="activity" className="w-full">
+                            <TabsList className="bg-slate-100 p-1 rounded-md h-10 border border-slate-200 mb-4">
+                                <TabsTrigger value="activity" className="h-8 px-6 rounded text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Activity Logs</TabsTrigger>
+                                <TabsTrigger value="security" className="h-8 px-6 rounded text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Security</TabsTrigger>
+                            </TabsList>
+                            
+                            <TabsContent value="activity" className="m-0">
+                                <Card className="rounded-lg border-slate-200 shadow-sm bg-white overflow-hidden">
+                                    <div className="divide-y divide-slate-50">
                                         {loadingActivity ? (
-                                            <div className="flex justify-center py-8">
-                                                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                                            </div>
+                                            <div className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-100" /></div>
                                         ) : activities.length === 0 ? (
-                                            <div className="text-center py-10">
-                                                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3 border border-border">
-                                                    <Clock className="w-5 h-5 text-muted-foreground" />
-                                                </div>
-                                                <p className="font-semibold text-foreground text-sm">No recent activity</p>
-                                            </div>
+                                            <div className="p-12 text-center text-slate-400 text-xs font-medium">No recent operations detected.</div>
                                         ) : (
-                                            <div className="space-y-4">
-                                                {activities.map((activity) => (
-                                                    <div key={activity._id} className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
-                                                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${activity.check_out ? 'bg-blue-500/10' : 'bg-success/10'}`}>
-                                                            <div className={`w-2 h-2 rounded-full ${activity.check_out ? 'bg-blue-500' : 'bg-success'}`} />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <p className="text-sm font-bold text-foreground">
-                                                                {activity.check_out ? 'Checked Out' : 'Checked In'}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground font-medium">
-                                                                {format(new Date(activity.date), 'MMM d, yyyy')}
-                                                            </p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="font-mono text-sm font-semibold text-foreground">
-                                                                {activity.check_out
-                                                                    ? format(new Date(activity.check_out), 'hh:mm a')
-                                                                    : format(new Date(activity.check_in), 'hh:mm a')
-                                                                }
-                                                            </p>
-                                                            <div className="mt-1">
-                                                                <StatusBadge status={activity.status} size="sm" />
-                                                            </div>
+                                            activities.map((activity) => (
+                                                <div key={activity._id} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`w-1.5 h-8 rounded-full ${activity.check_out ? 'bg-slate-200' : 'bg-emerald-500'}`} />
+                                                        <div>
+                                                            <p className="text-sm font-bold text-slate-900">{activity.check_out ? 'Session Finalized' : 'Session Initiated'}</p>
+                                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{format(new Date(activity.date), 'MMM d, yyyy')}</p>
                                                         </div>
                                                     </div>
-                                                ))}
-                                                <Button variant="ghost" className="w-full text-xs font-semibold text-muted-foreground h-9 mt-2">
-                                                    Load More
-                                                </Button>
-                                            </div>
+                                                    <div className="text-right">
+                                                        <p className="font-mono text-xs font-bold text-slate-700">
+                                                            {activity.check_out ? format(new Date(activity.check_out), 'hh:mm a') : format(new Date(activity.check_in), 'hh:mm a')}
+                                                        </p>
+                                                        <StatusBadge status={activity.status} className="mt-1 h-4 text-[8px] font-black uppercase tracking-widest" />
+                                                    </div>
+                                                </div>
+                                            ))
                                         )}
                                     </div>
-                                </div>
-                            ) : (
-                                <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-                                    <h3 className="text-lg font-bold text-foreground tracking-tight mb-5 flex items-center gap-2">
-                                        <Briefcase className="w-5 h-5 text-primary" /> Change Password
-                                    </h3>
-                                    <form onSubmit={handlePasswordChange} className="space-y-4">
+                                </Card>
+                            </TabsContent>
+                            
+                            <TabsContent value="security" className="m-0">
+                                <Card className="rounded-lg border-slate-200 shadow-sm bg-white p-6">
+                                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-6">Credential Management</h3>
+                                    <form onSubmit={handlePasswordChange} className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label className="text-xs font-semibold text-foreground">Current Password</Label>
+                                                <Label className="text-[10px] font-bold uppercase text-slate-500">Current Key</Label>
                                                 <Input type="password" name="currentPassword" required className="h-10 rounded-md" />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label className="text-xs font-semibold text-foreground">New Password</Label>
+                                                <Label className="text-[10px] font-bold uppercase text-slate-500">New Key</Label>
                                                 <Input type="password" name="newPassword" required className="h-10 rounded-md" />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-semibold text-foreground">Confirm New Password</Label>
+                                            <Label className="text-[10px] font-bold uppercase text-slate-500">Confirm New Key</Label>
                                             <Input type="password" name="confirmPassword" required className="h-10 rounded-md" />
                                         </div>
-                                        <div className="pt-2">
-                                            <Button type="submit" className="w-full md:w-auto px-6 h-10 bg-primary text-primary-foreground font-semibold rounded-lg shadow-sm">
-                                                Update Password
-                                            </Button>
-                                        </div>
+                                        <Button type="submit" className="h-10 px-8 bg-slate-900 text-white font-bold rounded-md uppercase tracking-widest text-xs">
+                                            Update Access Key
+                                        </Button>
                                     </form>
-                                </div>
-                            )}
-                        </div>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
                     </div>
 
-                    {/* Right Column (Info Cards) */}
                     <div className="md:col-span-4 space-y-6">
-                        <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
-                            <h3 className="text-base font-bold text-foreground tracking-tight mb-5 flex items-center gap-2">
-                                <Shield className="w-4 h-4 text-primary" /> Employment Details
-                            </h3>
-                            <div className="space-y-4">
+                        <Card className="bg-slate-50 border-slate-200 p-6 rounded-lg">
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6">Deployment Specs</h3>
+                            <div className="space-y-6">
                                 <div>
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Employee ID</p>
-                                    <p className="font-mono text-xs text-foreground bg-muted p-2 rounded-md border border-border break-all">{profile?._id}</p>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Official Registry ID</p>
+                                    <p className="font-mono text-[10px] text-slate-900 bg-white p-2 rounded border border-slate-200 break-all">{profile?._id}</p>
                                 </div>
-                                <div className="h-px bg-border" />
-                                <div>
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Joined</p>
-                                    <p className="text-sm font-semibold text-foreground">January 10, 2026</p>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase">Onboard Date</span>
+                                    <span className="text-xs font-bold text-slate-900">Jan 10, 2026</span>
                                 </div>
-                                <div className="h-px bg-border" />
-                                <div>
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Department</p>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                        <p className="text-sm font-semibold text-foreground">Operations</p>
-                                    </div>
+                                <div className="flex justify-between items-center pt-4 border-t border-slate-200">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase">Registry Status</span>
+                                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Active_Node</span>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
-                            <h3 className="text-base font-bold text-foreground tracking-tight mb-3">HR Support</h3>
-                            <p className="text-sm text-muted-foreground mb-5">
-                                Need to update your details or having issues? Reach out to HR.
-                            </p>
-                            <Button variant="outline" className="w-full h-10 rounded-lg font-semibold text-xs border-border">
-                                Contact HR
-                            </Button>
-                        </div>
+                        </Card>
                     </div>
                 </div>
             </div>

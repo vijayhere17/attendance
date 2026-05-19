@@ -19,6 +19,7 @@ import {
   Fingerprint,
   Clock,
   Pause,
+  Award,
 } from 'lucide-react';
 import {
   Dialog,
@@ -283,36 +284,30 @@ export default function CheckInOut() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6">
+      <div className="space-y-6 animate-in fade-in duration-500">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-border">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200">
           <div className="flex items-center gap-4">
-            <Avatar className="w-16 h-16 border-2 border-primary/20">
-              <AvatarImage src={getAvatarSrc((profile)?.avatar_url)} />
-              <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
-                {(profile?.full_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="w-12 h-12 rounded bg-slate-900 flex items-center justify-center text-lg font-bold text-white uppercase">
+              {(profile?.full_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
+            </div>
             <div>
-              <p className="text-muted-foreground text-sm font-medium mb-0.5">
-                {getGreeting()}
-              </p>
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-                {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'User'} {profile?.full_name?.split(' ')[0]}
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                {getGreeting()}, {profile?.full_name?.split(' ')[0]}
               </h1>
+              <p className="text-sm text-slate-500">
+                {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'Team Member'}
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-6">
             <div className="text-right">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Current Time</p>
-              <div className="text-2xl font-bold text-foreground font-mono">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Current Time</p>
+              <div className="text-xl font-bold text-slate-900 font-mono">
                 <LiveClock showSeconds />
               </div>
-            </div>
-            <div className="hidden sm:flex w-12 h-12 rounded-xl bg-primary/10 items-center justify-center text-primary border border-primary/20">
-              <Timer className="w-6 h-6 animate-pulse" />
             </div>
           </div>
         </div>
@@ -324,155 +319,115 @@ export default function CheckInOut() {
             
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card className="bg-card border-border shadow-sm p-4 rounded-xl">
-                <div className="flex justify-between items-start mb-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">WFH This Month</p>
-                  <Badge variant={stats.wfh >= limits.wfh ? "destructive" : "secondary"} className="h-5 px-1.5 text-[10px]">
+              <Card className="bg-white border-slate-200 shadow-sm p-4 rounded-md">
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">WFH Quota</p>
+                  <span className="text-[10px] font-bold text-slate-500">
                     {Math.max(0, limits.wfh - stats.wfh)} left
-                  </Badge>
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-foreground">{stats.wfh}/{limits.wfh}</h3>
+                  <h3 className="text-lg font-bold text-slate-900">{stats.wfh} / {limits.wfh}</h3>
                   <button 
                     disabled={stats.wfh >= limits.wfh || !canCheckIn}
                     onClick={() => setWorkMode(prev => prev === 'office' ? 'wfh' : 'office')}
-                    className={`p-1.5 rounded-md transition-colors ${workMode === 'wfh' ? 'bg-primary/20 text-primary' : (canCheckIn ? 'bg-muted hover:bg-muted/80 text-muted-foreground' : 'bg-muted opacity-50 text-muted-foreground')}`}
-                    title={workMode === 'wfh' ? 'Set to Office' : 'Set to WFH'}
+                    className={`p-1.5 rounded transition-colors ${workMode === 'wfh' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400 hover:text-slate-900'}`}
                   >
                     <Navigation className="w-4 h-4" />
                   </button>
                 </div>
-                <Progress value={(stats.wfh / limits.wfh) * 100} className="h-1.5 mt-3" />
               </Card>
 
-              <Card className="bg-card border-border shadow-sm p-4 rounded-xl">
-                <div className="flex justify-between items-start mb-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Late This Month</p>
-                  <Badge variant={stats.late >= limits.late ? "destructive" : "secondary"} className="h-5 px-1.5 text-[10px]">
-                    {Math.max(0, limits.late - stats.late)} left
-                  </Badge>
-                </div>
+              <Card className="bg-white border-slate-200 shadow-sm p-4 rounded-md">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Grace Lates</p>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-foreground">{stats.late}/{limits.late}</h3>
-                  <div className="p-1.5 rounded-md bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
+                  <h3 className="text-lg font-bold text-slate-900">{stats.late} / {limits.late}</h3>
+                  <div className="text-slate-200">
                     <Clock className="w-4 h-4" />
                   </div>
                 </div>
-                <Progress value={(stats.late / limits.late) * 100} className="h-1.5 mt-3 indicator-orange" />
               </Card>
 
-              <Card className="bg-card border-border shadow-sm p-4 rounded-xl">
-                <div className="flex justify-between items-start mb-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Leaves This Month</p>
-                  <Badge variant={stats.leave >= limits.leave ? "destructive" : "secondary"} className="h-5 px-1.5 text-[10px]">
-                    {Math.max(0, limits.leave - stats.leave)} left
-                  </Badge>
-                </div>
+              <Card className="bg-white border-slate-200 shadow-sm p-4 rounded-md">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Leave Allowance</p>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-foreground">{stats.leave}/{limits.leave}</h3>
-                  <div className="p-1.5 rounded-md bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                  <h3 className="text-lg font-bold text-slate-900">{stats.leave} / {limits.leave}</h3>
+                  <div className="text-slate-200">
                     <Calendar className="w-4 h-4" />
                   </div>
                 </div>
-                <Progress value={(stats.leave / limits.leave) * 100} className="h-1.5 mt-3 indicator-purple" />
               </Card>
             </div>
 
             {/* Attendance Action Card */}
-            <Card className="bg-card border-border shadow-sm rounded-xl overflow-hidden">
-              <div className="p-6 md:p-8 flex flex-col items-center justify-center relative min-h-[320px] bg-muted/10">
+            <Card className="bg-white border-slate-200 shadow-sm rounded-md overflow-hidden">
+              <div className="p-8 flex flex-col items-center justify-center relative min-h-[300px]">
                 {geoError && (
-                  <div className="absolute top-4 left-4 right-4 flex items-center gap-3 p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-sm">
-                    <AlertCircle className="w-5 h-5 shrink-0" />
-                    <p className="font-medium">{geoError}</p>
+                  <div className="mb-6 w-full flex items-center gap-3 p-3 bg-rose-50 text-rose-600 rounded border border-rose-100 text-xs font-medium">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <p>{geoError}</p>
                   </div>
                 )}
 
-                <div className="text-center mb-10 w-full max-w-sm mx-auto flex items-center justify-between">
-                   <div>
-                      <h2 className="text-xl font-bold text-foreground text-left">
-                        {isComplete ? 'Shift Complete' : canCheckOut ? 'Currently Working' : 'Ready to begin?'}
-                      </h2>
-                      <p className="text-muted-foreground text-sm text-left">
-                        {isComplete ? 'Great job today.' : 'Please log your attendance.'}
-                      </p>
-                   </div>
-                   {todayRecord && (
-                     <StatusBadge status={todayRecord.is_on_break ? 'on_break' : todayRecord.status} size="sm" />
-                   )}
+                <div className="text-center mb-8">
+                  <h2 className="text-lg font-bold text-slate-900 uppercase tracking-widest">
+                    {isComplete ? 'Shift Finalized' : canCheckOut ? 'Session Active' : 'Attendance Log'}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {isComplete ? 'Your logs for today are complete.' : 'Select an action to record your status.'}
+                  </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full max-w-md">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm">
                   <Button
-                    className={`flex-1 h-32 w-full rounded-2xl flex flex-col items-center justify-center gap-3 transition-all border shadow-sm
+                    className={`flex-1 h-24 w-full rounded-md flex flex-col items-center justify-center gap-2 transition-all border
                       ${canCheckIn 
-                          ? 'bg-primary hover:bg-primary/95 text-primary-foreground border-transparent' 
-                          : 'bg-muted text-muted-foreground border-border cursor-not-allowed opacity-70'}
+                          ? 'bg-slate-900 text-white hover:bg-slate-800 border-transparent' 
+                          : 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'}
                     `}
                     disabled={!canCheckIn || actionLoading || geoLoading}
                     onClick={() => setAttendanceAction('check_in')}
-                    variant={canCheckIn ? 'default' : 'outline'}
                   >
                     {actionLoading && !todayRecord?.check_in ? (
-                      <Loader2 className="w-8 h-8 animate-spin" />
+                      <Loader2 className="w-6 h-6 animate-spin" />
                     ) : (
-                      <LogIn className="w-8 h-8" />
+                      <LogIn className="w-6 h-6" />
                     )}
-                    <span className="font-semibold text-lg">Check In</span>
+                    <span className="font-bold text-xs uppercase tracking-widest">Check In</span>
                   </Button>
 
                   <Button
-                    className={`flex-1 h-32 w-full rounded-2xl flex flex-col items-center justify-center gap-3 transition-all border shadow-sm
+                    className={`flex-1 h-24 w-full rounded-md flex flex-col items-center justify-center gap-2 transition-all border
                       ${canCheckOut && !todayRecord?.is_on_break
-                          ? 'bg-foreground hover:bg-foreground/90 text-background border-transparent' 
-                          : 'bg-card hover:bg-muted text-muted-foreground border-border opacity-70'}
+                          ? 'bg-white text-slate-900 border-slate-200 hover:bg-slate-50' 
+                          : 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'}
                     `}
                     disabled={!canCheckOut || todayRecord?.is_on_break || actionLoading || geoLoading}
                     onClick={() => setAttendanceAction('check_out')}
-                    variant="outline"
                   >
                     {actionLoading && canCheckOut ? (
-                      <Loader2 className="w-8 h-8 animate-spin" />
+                      <Loader2 className="w-6 h-6 animate-spin" />
                     ) : (
-                      <LogOut className="w-8 h-8" />
+                      <LogOut className="w-6 h-6" />
                     )}
-                    <span className="font-semibold text-lg">Check Out</span>
+                    <span className="font-bold text-xs uppercase tracking-widest">Check Out</span>
                   </Button>
                 </div>
 
                 {canCheckOut && (
-                  <div className="mt-6 w-full max-w-md">
+                  <div className="mt-4 w-full max-w-sm">
                     <Button
-                      variant="outline"
-                      className={`w-full h-12 rounded-lg font-medium shadow-sm gap-2 ${todayRecord?.is_on_break ? 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200' : 'bg-card text-foreground border-border hover:bg-muted'}`}
+                      variant="ghost"
+                      className={`w-full h-10 rounded-md font-bold text-[10px] uppercase tracking-widest border
+                        ${todayRecord?.is_on_break 
+                          ? 'bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100' 
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
                       disabled={actionLoading}
                       onClick={todayRecord?.is_on_break ? handleResumeBreak : handleStartBreak}
                     >
-                      <Pause className="w-4 h-4" />
+                      <Pause className="w-3.5 h-3.5 mr-2" />
                       {todayRecord?.is_on_break ? 'Resume Work' : 'Take a Break'}
                     </Button>
-                  </div>
-                )}
-                
-                {todayRecord?.check_in && !todayRecord.check_out && (
-                  <div className="mt-8 w-full">
-                     <div className={`p-4 rounded-xl border ${todayRecord.is_on_break ? 'border-primary/50 bg-primary/5' : 'border-border bg-card'} w-full flex items-center justify-between`}>
-                        <div className="flex items-center gap-3">
-                           <div className={`p-2 rounded-lg ${todayRecord.is_on_break ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                              <Timer className={`w-4 h-4 ${todayRecord.is_on_break ? 'animate-spin-slow' : ''}`} />
-                           </div>
-                           <div>
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Break Time Used</p>
-                              <div className="flex items-baseline gap-1">
-                                <span className={`text-lg font-bold ${getBreakTime() > 45 ? 'text-destructive' : 'text-foreground'}`}>{getBreakTime()}</span>
-                                <span className="text-xs text-muted-foreground">/ 45 mins</span>
-                              </div>
-                           </div>
-                        </div>
-                        {getBreakTime() > 45 && (
-                          <Badge variant="destructive">Exceeded</Badge>
-                        )}
-                     </div>
                   </div>
                 )}
               </div>
@@ -480,49 +435,47 @@ export default function CheckInOut() {
 
             {/* Quick Summary Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <Card className="bg-card border-border shadow-sm p-5 rounded-xl">
-                <div className="flex items-center gap-2 mb-4 text-muted-foreground">
-                  <Fingerprint className="w-4 h-4" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider">Today's Times</h3>
+              <Card className="bg-white border-slate-200 shadow-sm p-5 rounded-md">
+                <div className="flex items-center gap-2 mb-4">
+                  <Fingerprint className="w-4 h-4 text-slate-400" />
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Timestamps</h3>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg border border-border">
-                    <span className="text-sm font-semibold text-muted-foreground">Check In</span>
-                    <span className="text-base font-mono font-bold text-foreground">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-500">Check In</span>
+                    <span className="font-mono font-bold text-slate-900">
                       {todayRecord?.check_in ? format(new Date(todayRecord.check_in), 'hh:mm a') : '—'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg border border-border">
-                    <span className="text-sm font-semibold text-muted-foreground">Check Out</span>
-                    <span className="text-base font-mono font-bold text-foreground">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-500">Check Out</span>
+                    <span className="font-mono font-bold text-slate-900">
                       {todayRecord?.check_out ? format(new Date(todayRecord.check_out), 'hh:mm a') : '—'}
                     </span>
                   </div>
                 </div>
               </Card>
 
-              <Card className="bg-card border-border shadow-sm p-5 rounded-xl">
-                <div className="flex items-center gap-2 mb-4 text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider">Work Duration</h3>
+              <Card className="bg-white border-slate-200 shadow-sm p-5 rounded-md">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Duration</h3>
                 </div>
                 {workDuration ? (
-                  <div className="space-y-6">
-                    <div className="flex items-end justify-between">
-                      <p className="text-3xl font-bold text-foreground">
-                        {workDuration.hours}<span className="text-lg text-muted-foreground mx-1">h</span> {workDuration.mins}<span className="text-lg text-muted-foreground ml-1">m</span>
+                  <div className="space-y-4">
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-2xl font-bold text-slate-900">
+                        {workDuration.hours}h {workDuration.mins}m
                       </p>
-                      <div className="text-right">
-                        <p className="text-xl font-bold text-primary">{shiftProgress}%</p>
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">of shift</p>
-                      </div>
+                      <span className="text-[10px] font-bold text-slate-400">{shiftProgress}% of shift</span>
                     </div>
-                    <Progress value={shiftProgress} className="h-2.5" />
+                    <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                       <div className="h-full bg-slate-900 rounded-full" style={{ width: `${shiftProgress}%` }} />
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
-                    <Timer className="w-8 h-8 opacity-20 mb-2" />
-                    <p className="text-sm font-medium">Not checked in yet</p>
+                  <div className="py-4 text-center text-slate-300">
+                    <p className="text-xs font-medium">Session inactive</p>
                   </div>
                 )}
               </Card>
@@ -531,46 +484,51 @@ export default function CheckInOut() {
           
           {/* Sidebar Column */}
           <div className="lg:col-span-4 space-y-6">
-            <StreakCounter streak={streak} bestStreak={profile?.best_streak || streak} />
-            
-            <Card className="bg-card border-border shadow-sm rounded-xl overflow-hidden">
-              <div className="p-4 bg-muted/30 border-b border-border">
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-primary" /> Today's Shift
-                </h3>
+            <Card className="bg-slate-900 text-white p-6 rounded-md shadow-lg border-0 overflow-hidden relative">
+              <div className="relative z-10">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Consistency Streak</p>
+                <div className="flex items-baseline gap-2">
+                  <h2 className="text-4xl font-bold">{streak}</h2>
+                  <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">Days</span>
+                </div>
+                <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Personal Best</span>
+                  <span className="text-sm font-bold">{profile?.best_streak || streak}d</span>
+                </div>
               </div>
-              <div className="p-5">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                 <Award className="w-20 h-20" />
+              </div>
+            </Card>
+            
+            <Card className="bg-white border-slate-200 shadow-sm rounded-md overflow-hidden">
+              <div className="p-4 border-b border-slate-50 flex items-center justify-between">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Shift Configuration</h3>
+                <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider bg-slate-50">
+                  {profile?.role}
+                </Badge>
+              </div>
+              <div className="p-5 space-y-4">
                 {shiftLoading ? (
-                  <div className="flex justify-center p-4">
-                     <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                  </div>
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-200" />
                 ) : shiftConfig ? (
-                  <div className="space-y-5">
-                    <div>
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Shift Hours</p>
-                      <p className="font-bold text-lg text-foreground">{shiftConfig.formatted.shift_start} — {shiftConfig.formatted.shift_end}</p>
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-slate-500 font-medium">Shift Start</span>
+                      <span className="text-xs font-bold text-slate-900">{shiftConfig.formatted.shift_start}</span>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Role / Batch</p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="px-2.5 py-0.5 rounded-md font-semibold text-xs text-primary bg-primary/10 hover:bg-primary/20">
-                          {profile?.role?.toUpperCase()}
-                        </Badge>
-                        {profile?.batch && (
-                          <Badge variant="outline" className="px-2.5 py-0.5 rounded-md font-semibold text-xs">
-                            {profile.batch}
-                          </Badge>
-                        )}
-                      </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-slate-500 font-medium">Shift End</span>
+                      <span className="text-xs font-bold text-slate-900">{shiftConfig.formatted.shift_end}</span>
                     </div>
-                  </div>
+                  </>
                 ) : (
-                  <p className="text-sm text-muted-foreground italic">No shift assigned.</p>
+                  <p className="text-xs text-slate-400 italic">No shift assigned.</p>
                 )}
-                <div className="mt-6 pt-4 border-t border-border">
-                  <Button variant="outline" className="w-full h-10 rounded-lg font-medium text-sm gap-2" asChild>
+                <div className="pt-4 border-t border-slate-50">
+                  <Button variant="ghost" className="w-full h-8 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900" asChild>
                     <a href="/employee/history">
-                      View History <Clock className="w-4 h-4 opacity-50" />
+                      Log History
                     </a>
                   </Button>
                 </div>
@@ -581,18 +539,18 @@ export default function CheckInOut() {
       </div>
 
       <Dialog open={!!attendanceAction} onOpenChange={(open) => !open && setAttendanceAction(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-lg">
           <DialogHeader>
-            <DialogTitle>{attendanceAction === 'check_in' ? 'Check In' : 'Check Out'}</DialogTitle>
-            <DialogDescription>
-              Are you working from home or from the office for this session?
+            <DialogTitle className="text-base font-bold text-slate-900">Confirm Action</DialogTitle>
+            <DialogDescription className="text-xs">
+              Select your work mode for this attendance log.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
+          <div className="grid grid-cols-2 gap-3 py-4">
             <Button
               variant={workMode === 'office' ? 'default' : 'outline'}
               onClick={() => setWorkMode('office')}
-              className={workMode === 'office' ? 'ring-2 ring-primary ring-offset-2' : ''}
+              className={`h-12 rounded-md ${workMode === 'office' ? 'bg-slate-900 text-white' : ''}`}
             >
               🏢 Office
             </Button>
@@ -600,20 +558,17 @@ export default function CheckInOut() {
               variant={workMode === 'wfh' ? 'default' : 'outline'}
               onClick={() => setWorkMode('wfh')}
               disabled={workMode !== 'wfh' && stats.wfh >= limits.wfh && attendanceAction === 'check_in'}
-              className={workMode === 'wfh' ? 'ring-2 ring-primary ring-offset-2' : ''}
+              className={`h-12 rounded-md ${workMode === 'wfh' ? 'bg-slate-900 text-white' : ''}`}
             >
-              🏠 Work From Home
-              {stats.wfh >= limits.wfh && attendanceAction === 'check_in' && (
-                <span className="block text-[10px] mt-1 opacity-70">(Limit reached)</span>
-              )}
+              🏠 Remote
             </Button>
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="ghost" className="w-full sm:w-auto" onClick={() => setAttendanceAction(null)}>
+            <Button variant="ghost" className="text-xs font-bold" onClick={() => setAttendanceAction(null)}>
               Cancel
             </Button>
             <Button
-              className="w-full sm:w-auto"
+              className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold rounded-md px-6"
               disabled={actionLoading || geoLoading}
               onClick={() => {
                 if (attendanceAction) {
@@ -622,8 +577,7 @@ export default function CheckInOut() {
                 }
               }}
             >
-              {actionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-              Confirm {attendanceAction === 'check_in' ? 'Check In' : 'Check Out'}
+              Confirm
             </Button>
           </DialogFooter>
         </DialogContent>

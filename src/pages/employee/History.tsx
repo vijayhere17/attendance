@@ -76,30 +76,24 @@ export default function History() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">My History</h1>
-              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-2 py-0.5 rounded-md text-xs font-semibold">
-                Attendance
-              </Badge>
-            </div>
-            <p className="text-muted-foreground text-sm">Detailed record of your work history and attendance.</p>
+            <h1 className="text-xl font-bold text-slate-900">Attendance History</h1>
+            <p className="text-sm text-slate-500 mt-1">Detailed record of your work sessions.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="outline" className="h-10 px-4 rounded-lg bg-card border-border hover:bg-muted text-foreground font-medium text-sm gap-2 shadow-sm">
-              <Download className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="h-9 px-4 rounded-md bg-white border-slate-200 text-slate-900 font-bold text-xs uppercase tracking-widest gap-2 shadow-sm hover:bg-slate-50">
+              <Download className="w-3.5 h-3.5" />
               Export
             </Button>
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-10 pl-10 pr-8 rounded-lg bg-card border border-border text-foreground text-sm font-medium shadow-sm focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
+                className="h-9 pl-4 pr-8 rounded-md bg-white border border-slate-200 text-slate-900 text-xs font-bold uppercase tracking-widest shadow-sm focus:ring-1 focus:ring-slate-900 appearance-none cursor-pointer"
               >
-                <option value="all">All Status</option>
+                <option value="all">Filter Status</option>
                 <option value="present">Present</option>
                 <option value="late">Late</option>
                 <option value="early_exit">Early Exit</option>
@@ -107,13 +101,13 @@ export default function History() {
               </select>
             </div>
             <div className="relative flex-1 md:flex-none">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search by date..."
+                placeholder="Search date..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full md:w-56 h-10 pl-10 pr-4 rounded-lg bg-card border border-border text-foreground text-sm placeholder:text-muted-foreground shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full md:w-48 h-9 pl-9 pr-4 rounded-md bg-white border border-slate-200 text-xs font-medium placeholder:text-slate-400 shadow-sm focus:ring-1 focus:ring-slate-900"
               />
             </div>
           </div>
@@ -121,138 +115,106 @@ export default function History() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            title="Total Sessions"
+            title="Total Logs"
             value={stats.total}
             icon={<Calendar className="w-4 h-4" />}
-            className="rounded-xl border border-border bg-card shadow-sm p-4"
           />
           <StatCard
             title="On Time"
             value={stats.present}
-            icon={<CheckCircle2 className="w-4 h-4 text-success" />}
-            className="rounded-xl border border-border bg-card shadow-sm p-4"
+            icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
           />
           <StatCard
-            title="Late Entries"
+            title="Late"
             value={stats.late}
-            icon={<Clock className="w-4 h-4 text-warning" />}
-            className="rounded-xl border border-border bg-card shadow-sm p-4"
+            icon={<Clock className="w-4 h-4 text-amber-500" />}
           />
           <StatCard
-            title="Efficiency Rate"
+            title="Rate"
             value={`${attendanceRate}%`}
-            icon={<TrendingUp className="w-4 h-4 text-primary" />}
-            className="rounded-xl border border-border bg-card shadow-sm p-4"
+            icon={<TrendingUp className="w-4 h-4 text-slate-900" />}
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4 lg:sticky lg:top-6 h-fit">
-            <div className="bg-card rounded-xl border border-border p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-foreground">Calendar</h3>
-                <Badge variant="secondary" className="rounded-md font-medium">{format(currentDate, 'MMM yyyy')}</Badge>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-4 lg:sticky lg:top-6 h-fit space-y-6">
+            <Card className="bg-white border-slate-200 shadow-sm rounded-lg overflow-hidden">
+              <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Calendar</h3>
+                <span className="text-[10px] font-bold text-slate-900">{format(currentDate, 'MMM yyyy')}</span>
               </div>
-              <AttendanceCalendar
-                records={records}
-                currentDate={currentDate}
-                onMonthChange={setCurrentDate}
-              />
-              <div className="p-3 rounded-lg bg-muted/50 border border-border mt-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">Legend</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-success" />
-                    <span className="text-xs text-foreground font-medium">Present</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-warning" />
-                    <span className="text-xs text-foreground font-medium">Late</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-destructive" />
-                    <span className="text-xs text-foreground font-medium">Absent</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-primary" />
-                    <span className="text-xs text-foreground font-medium">Streak</span>
-                  </div>
-                </div>
+              <div className="p-4">
+                <AttendanceCalendar
+                  records={records}
+                  currentDate={currentDate}
+                  onMonthChange={setCurrentDate}
+                />
               </div>
-            </div>
+            </Card>
+
+            <Card className="bg-white border-slate-200 shadow-sm rounded-lg p-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Color Legend</p>
+              <div className="grid grid-cols-2 gap-y-3">
+                {[
+                  { label: 'Present', color: 'bg-emerald-500' },
+                  { label: 'Late', color: 'bg-amber-500' },
+                  { label: 'Absent', color: 'bg-rose-500' },
+                  { label: 'Streak', color: 'bg-slate-900' },
+                ].map(item => (
+                  <div key={item.label} className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${item.color}`} />
+                    <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
 
           <div className="lg:col-span-8">
-            <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
-              <div className="p-5 border-b border-border flex items-center justify-between bg-muted/10">
-                <div>
-                  <h3 className="text-base font-semibold text-foreground">Attendance Records</h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="rounded-md">{filteredRecords.length} records</Badge>
-                </div>
+            <Card className="bg-white border-slate-200 shadow-sm rounded-lg overflow-hidden">
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Session Records</h3>
+                <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider bg-white">{filteredRecords.length} Entries</Badge>
               </div>
 
               <div className="overflow-x-auto">
                 {loading ? (
-                  <div className="flex items-center justify-center py-24">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary/50" />
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-6 h-6 animate-spin text-slate-200" />
                   </div>
                 ) : filteredRecords.length === 0 ? (
-                  <div className="py-24 flex flex-col items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center border border-border">
-                      <Calendar className="w-6 h-6 text-muted-foreground/50" />
-                    </div>
-                    <div className="text-center">
-                      <p className="font-semibold text-foreground">No records found</p>
-                      <p className="text-muted-foreground text-sm">Try adjusting your filters or search query.</p>
-                    </div>
+                  <div className="py-20 text-center text-slate-400">
+                    <p className="text-xs font-medium">No records matching your criteria.</p>
                   </div>
                 ) : (
                   <Table>
-                    <TableHeader className="bg-muted/30">
-                      <TableRow className="border-b border-border">
-                        <TableHead className="h-10 px-5 text-muted-foreground font-semibold text-xs">Timeline</TableHead>
-                        <TableHead className="h-10 px-5 text-muted-foreground font-semibold text-xs">Arrival</TableHead>
-                        <TableHead className="h-10 px-5 text-muted-foreground font-semibold text-xs">Departure</TableHead>
-                        <TableHead className="h-10 px-5 text-muted-foreground font-semibold text-xs text-right">Status</TableHead>
+                    <TableHeader>
+                      <TableRow className="bg-slate-50/30 hover:bg-slate-50/30">
+                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-400 h-10 px-5">Date</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-400 h-10 px-5">Check In</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-400 h-10 px-5">Check Out</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-400 h-10 px-5 text-right">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredRecords.map((record) => (
-                        <TableRow key={record._id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                        <TableRow key={record._id} className="hover:bg-slate-50/30 transition-colors border-b border-slate-50 last:border-0">
                           <TableCell className="px-5 py-4">
-                            <p className="text-sm font-semibold text-foreground">{format(parseISO(record.date), 'MMM d')}</p>
-                            <p className="text-xs text-muted-foreground">{format(parseISO(record.date), 'EEEE')}</p>
+                            <p className="text-sm font-bold text-slate-900">{format(parseISO(record.date), 'MMM d')}</p>
+                            <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{format(parseISO(record.date), 'EEEE')}</p>
                           </TableCell>
                           <TableCell className="px-5">
-                            {record.check_in ? (
-                              <div className="flex items-center gap-2 text-sm font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-success" />
-                                {format(new Date(record.check_in), 'hh:mm a')}
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground text-sm flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
-                                --:--
-                              </span>
-                            )}
+                            <span className="text-xs font-mono font-bold text-slate-700">
+                              {record.check_in ? format(new Date(record.check_in), 'hh:mm a') : '--:--'}
+                            </span>
                           </TableCell>
                           <TableCell className="px-5">
-                            {record.check_out ? (
-                              <div className="flex items-center gap-2 text-sm font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-destructive/80" />
-                                {format(new Date(record.check_out), 'hh:mm a')}
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground text-sm flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
-                                --:--
-                              </span>
-                            )}
+                            <span className="text-xs font-mono font-bold text-slate-700">
+                              {record.check_out ? format(new Date(record.check_out), 'hh:mm a') : '--:--'}
+                            </span>
                           </TableCell>
                           <TableCell className="px-5 text-right">
-                            <StatusBadge status={record.status} size="sm" />
+                            <StatusBadge status={record.status} size="sm" className="h-5 px-2 text-[9px] font-bold uppercase tracking-widest" />
                           </TableCell>
                         </TableRow>
                       ))}
@@ -260,7 +222,7 @@ export default function History() {
                   </Table>
                 )}
               </div>
-            </div>
+            </Card>
           </div>
         </div>
       </div>
