@@ -397,7 +397,7 @@ export default function AdminSettings() {
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast.error('Hardware geolocator disabled.');
+      toast.error('Not able to find location');
       return;
     }
     setGettingLocation(true);
@@ -409,7 +409,7 @@ export default function AdminSettings() {
           longitude: position.coords.longitude,
         });
         setGettingLocation(false);
-        toast.success('G-Coordinates locked!');
+        toast.success('Location found');
       },
       (error) => {
         setGettingLocation(false);
@@ -421,10 +421,10 @@ export default function AdminSettings() {
 
   if (loading) {
     return (
-      <Layout>
+       <Layout>
         <div className="flex flex-col items-center justify-center py-40 space-y-4">
-          <div className="w-16 h-16 rounded-full border-4 border-indigo-600/10 border-t-indigo-600 animate-spin" />
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">Configuring Environment</p>
+          <Loader2 className="w-8 h-8 animate-spin text-slate-200" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Loading Configuration</p>
         </div>
       </Layout>
     );
@@ -432,262 +432,149 @@ export default function AdminSettings() {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8 animate-in fade-in duration-700">
+      <div className="space-y-8 animate-in fade-in duration-500">
 
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-border/60">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3 uppercase">
-              <Settings className="w-8 h-8 text-primary" />
-              Admin Control Center
-            </h1>
-            <p className="text-muted-foreground flex items-center gap-2 font-bold text-sm tracking-tight">
-              <Shield className="w-4 h-4 opacity-50" />
-              Secure Configuration & System Runtime Parameters
-            </p>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-slate-200">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">System Configuration</h1>
+            <p className="text-sm text-slate-500 mt-1">Manage global system parameters and geofence policies.</p>
           </div>
 
-          <Button onClick={handleSave} disabled={saving} className="h-12 px-8 rounded-xl bg-indigo-600 hover:bg-black text-white font-black shadow-xl shadow-indigo-100 gap-2 transition-all active:scale-95 w-full lg:w-auto">
-            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-            Deploy System Changes
+          <Button onClick={handleSave} disabled={saving} className="h-10 px-6 bg-slate-900 text-white hover:bg-slate-800 rounded-md font-bold shadow-sm gap-2">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Save Changes
           </Button>
         </div>
 
-        <Tabs defaultValue="general" className="w-full space-y-8">
-          <div className="p-1 rounded-[1.5rem] bg-muted/40 border border-border/40 shadow-inner inline-flex w-full lg:w-auto">
-            <TabsList className="bg-transparent h-auto p-0 flex flex-wrap gap-1">
-              <TabsTrigger value="general" className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-md border-none transition-all">
-                General
+        <Tabs defaultValue="general" className="w-full space-y-6">
+          <TabsList className="bg-slate-100 p-1 rounded-md h-10 gap-1 border border-slate-200">
+            {['general', 'profile', 'security', 'holidays', 'location', 'alerts'].map(tab => (
+              <TabsTrigger key={tab} value={tab} className="h-8 px-4 rounded text-[10px] font-bold uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-slate-500 hover:text-slate-900">
+                {tab}
               </TabsTrigger>
-              <TabsTrigger value="profile" className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-md border-none transition-all">
-                Admin Profile
-              </TabsTrigger>
-              <TabsTrigger value="security" className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-md border-none transition-all">
-                Security
-              </TabsTrigger>
-              <TabsTrigger value="holidays" className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-md border-none transition-all">
-                Holidays
-              </TabsTrigger>
-              <TabsTrigger value="location" className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-md border-none transition-all">
-                Geofence
-              </TabsTrigger>
-              <TabsTrigger value="notifications" className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-md border-none transition-all">
-                Alerts
-              </TabsTrigger>
-            </TabsList>
-          </div>
+            ))}
+          </TabsList>
 
           <TabsContent value="general" className="m-0 space-y-6">
-            <Card className="rounded-[2.5rem] border-border/60 shadow-none bg-card overflow-hidden">
-              <CardHeader className="p-10 pb-0">
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                    <Globe className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-black tracking-tight">Organization Blueprint</CardTitle>
-                    <CardDescription className="text-sm font-bold uppercase tracking-[0.1em] text-muted-foreground opacity-60">Global Identity & Thresholds</CardDescription>
-                  </div>
-                </div>
+            <Card className="rounded-lg border-slate-200 shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-slate-50 p-6">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-900">General Blueprint</CardTitle>
               </CardHeader>
-              <CardContent className="p-10 space-y-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="space-y-4">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600 block mb-6">Identity Registry</Label>
-                    <div className="space-y-2 group">
-                      <div className="flex items-center justify-between mb-1">
-                        <Label className="font-black text-sm tracking-tight">Canonical Office Name</Label>
-                        <Badge variant="outline" className="text-[9px] font-black opacity-50 uppercase">Public</Badge>
-                      </div>
-                      <Input
-                        id="office-name"
-                        value={office.name}
-                        onChange={(e) => setOffice({ ...office, name: e.target.value })}
-                        className="h-14 rounded-2xl border-border/60 bg-muted/20 group-focus-within:bg-white transition-all shadow-sm"
-                        placeholder="e.g. Exotic Infotech Headquarters"
-                      />
-                    </div>
+              <CardContent className="p-6 space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-slate-500 uppercase">Office Name</Label>
+                    <Input
+                      value={office.name}
+                      onChange={(e) => setOffice({ ...office, name: e.target.value })}
+                      className="h-10 rounded-md border-slate-200 focus:ring-slate-900"
+                    />
                   </div>
 
-                  <div className="space-y-4">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600 block mb-6">Time Compliance Policy</Label>
-                    <div className="space-y-2 group">
-                      <div className="flex items-center justify-between mb-1">
-                        <Label className="font-black text-sm tracking-tight">Grace Window Duration</Label>
-                        <div className="flex items-center gap-1.5 text-warning">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span className="text-[10px] font-black tracking-tighter">THRESHOLD_SET</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="relative flex-1">
-                          <Input
-                            id="grace-period"
-                            type="number"
-                            value={office.grace_period_mins}
-                            onChange={(e) => setOffice({ ...office, grace_period_mins: parseInt(e.target.value) || 0 })}
-                            className="h-14 rounded-2xl border-border/60 bg-muted/20 pl-14 text-lg font-black group-focus-within:bg-white transition-all shadow-sm"
-                          />
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black opacity-30 text-xs">MIN</div>
-                        </div>
-                      </div>
-                      <p className="text-[11px] font-semibold text-muted-foreground/70 leading-relaxed italic pr-4">
-                        System allows entry and marks as 'On-Time' within this duration past the shift start.
-                      </p>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-slate-500 uppercase">Grace Period (Minutes)</Label>
+                    <div className="flex items-center gap-4">
+                      <Input
+                        type="number"
+                        value={office.grace_period_mins}
+                        onChange={(e) => setOffice({ ...office, grace_period_mins: parseInt(e.target.value) || 0 })}
+                        className="h-10 rounded-md border-slate-200 focus:ring-slate-900"
+                      />
                     </div>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="bg-muted/10 p-8 border-t border-border/40">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Info className="w-4 h-4 text-indigo-500" />
-                  <p className="text-xs font-bold font-mono tracking-tight lowercase">env_node: production_v1.0.4 // auto_sync: enabled</p>
-                </div>
-              </CardFooter>
             </Card>
           </TabsContent>
 
           <TabsContent value="profile" className="m-0 space-y-6">
-            <Card className="rounded-[2.5rem] border-border/60 shadow-none bg-card overflow-hidden">
-              <CardHeader className="p-10 pb-0">
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                    <UserCircle className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-black tracking-tight">Management Passport</CardTitle>
-                    <CardDescription className="text-sm font-bold uppercase tracking-[0.1em] text-muted-foreground opacity-60">Admin Security & Identity Profile</CardDescription>
-                  </div>
-                </div>
+            <Card className="rounded-lg border-slate-200 shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-slate-50 p-6">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-900">Administrator Profile</CardTitle>
               </CardHeader>
-              <CardContent className="p-10">
+              <CardContent className="p-6">
                 <ProfileSettingsPanel />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="security" className="m-0 space-y-6">
-            <Card className="rounded-[2.5rem] border-border/60 shadow-none bg-card overflow-hidden">
-              <CardHeader className="p-10 pb-0">
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                    <Lock className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-black tracking-tight">Security Access</CardTitle>
-                    <CardDescription className="text-sm font-bold uppercase tracking-[0.1em] text-muted-foreground opacity-60">Update Admin Credentials & Access Keys</CardDescription>
-                  </div>
-                </div>
+            <Card className="rounded-lg border-slate-200 shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-slate-50 p-6">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-900">Access Control</CardTitle>
               </CardHeader>
-              <CardContent className="p-10">
+              <CardContent className="p-6">
                 <SecuritySettingsPanel />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="holidays" className="m-0 space-y-6">
-            <Card className="rounded-[2.5rem] border-border/60 shadow-none bg-card overflow-hidden">
-              <CardHeader className="p-10 pb-0">
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                    <Calendar className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-black tracking-tight">Holiday Intelligence</CardTitle>
-                    <CardDescription className="text-sm font-bold uppercase tracking-[0.1em] text-muted-foreground opacity-60">System-wide Observed Non-Working Days</CardDescription>
-                  </div>
-                </div>
+            <Card className="rounded-lg border-slate-200 shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-slate-50 p-6">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-900">Holiday Calendar</CardTitle>
               </CardHeader>
-              <CardContent className="p-10">
+              <CardContent className="p-6">
                 <HolidaySettingsPanel />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="location" className="m-0 space-y-6">
-            <Card className="rounded-[2.5rem] border-border/60 shadow-none bg-card overflow-hidden">
-              <CardHeader className="p-10 pb-0">
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                    <MapPin className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-black tracking-tight">Precision Geofence</CardTitle>
-                    <CardDescription className="text-sm font-bold uppercase tracking-[0.1em] text-muted-foreground opacity-60">Radius Compliance & Coordinates Setup</CardDescription>
-                  </div>
-                </div>
+            <Card className="rounded-lg border-slate-200 shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-slate-50 p-6">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-900">Geofence Compliance</CardTitle>
               </CardHeader>
-              <CardContent className="p-10">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
-                  <div className="md:col-span-7 space-y-8">
-                    <div className="grid grid-cols-2 gap-6">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+                  <div className="md:col-span-7 space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-wider opacity-60">Latitude Coordinates</Label>
+                        <Label className="text-xs font-bold text-slate-500 uppercase">Latitude</Label>
                         <Input
                           type="number"
                           step="any"
                           value={office.latitude}
                           onChange={(e) => setOffice({ ...office, latitude: parseFloat(e.target.value) || 0 })}
-                          className="h-12 rounded-xl font-bold border-border/40"
+                          className="h-10 rounded-md font-mono"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-wider opacity-60">Longitude Coordinates</Label>
+                        <Label className="text-xs font-bold text-slate-500 uppercase">Longitude</Label>
                         <Input
                           type="number"
                           step="any"
                           value={office.longitude}
                           onChange={(e) => setOffice({ ...office, longitude: parseFloat(e.target.value) || 0 })}
-                          className="h-12 rounded-xl font-bold border-border/40"
+                          className="h-10 rounded-md font-mono"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center px-1">
-                        <Label className="text-[10px] font-black uppercase tracking-wider opacity-60">Verification Radius (Meters)</Label>
-                        <Badge className="bg-primary shadow-lg shadow-indigo-100 rounded-lg h-5 font-black text-[10px] px-2">{office.radius_meters}m</Badge>
-                      </div>
+                      <Label className="text-xs font-bold text-slate-500 uppercase">Verification Radius (Meters)</Label>
                       <Input
                         type="number"
                         value={office.radius_meters}
                         onChange={(e) => setOffice({ ...office, radius_meters: parseInt(e.target.value) || 100 })}
-                        className="h-14 rounded-2xl font-black text-xl border-border focus-visible:ring-primary/20 shadow-sm"
+                        className="h-10 rounded-md font-bold"
                       />
-                      <div className="flex items-start gap-2 p-4 rounded-xl bg-orange-50 border border-orange-100 text-orange-800">
-                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <p className="text-[10px] font-bold leading-relaxed lowercase tracking-tight italic">
-                          CAUTION: Excessive radius may compromise attendance integrity. 50m-150m recommended for reliable tracking.
-                        </p>
-                      </div>
                     </div>
                   </div>
 
                   <div className="md:col-span-5">
-                    <div className="h-full rounded-3xl border border-border/60 bg-muted/20 relative overflow-hidden flex flex-col items-center justify-center text-center p-8">
-                      <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none">
-                        <div className="w-full h-full bg-[radial-gradient(circle,var(--primary)_1px,transparent_1px)] bg-[size:20px_20px]" />
-                      </div>
-
-                      <div className="relative mb-6">
-                        <div className="w-24 h-24 rounded-full bg-white shadow-2xl flex items-center justify-center border border-border/40 relative z-10">
-                          <Navigation className="w-10 h-10 text-primary animate-pulse" />
-                        </div>
-                        <div className="absolute -top-4 -left-4 w-32 h-32 rounded-full border-4 border-dashed border-primary/20 animate-spin-slow" />
-                      </div>
-
-                      <h4 className="text-lg font-black tracking-tight text-slate-800 mb-2">Satellite Sync</h4>
-                      <p className="text-xs font-bold text-muted-foreground max-w-[220px] mb-8 lowercase tracking-tight leading-relaxed italic">
-                        Lock current GPS metadata to system geofence registry.
-                      </p>
-
+                    <div className="h-full rounded-md border border-slate-200 bg-slate-50 flex flex-col items-center justify-center text-center p-8">
+                      <Navigation className="w-8 h-8 text-slate-300 mb-4" />
+                      <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-2">GPS Detection</h4>
+                      <p className="text-xs text-slate-500 mb-6 max-w-[200px]">Capture current location metadata for system geofencing.</p>
                       <Button
                         onClick={useCurrentLocation}
                         disabled={gettingLocation}
-                        className="w-full h-12 rounded-xl bg-slate-900 hover:bg-black text-white font-black shadow-xl shadow-slate-200 transition-all active:scale-95"
+                        size="sm"
+                        className="w-full bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold uppercase tracking-widest text-[10px]"
                       >
-                        {gettingLocation ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Navigation className="w-4 h-4 mr-2" />}
-                        Auto-Detect Location
+                        {gettingLocation ? 'Detecting...' : 'Detect Location'}
                       </Button>
                     </div>
                   </div>
@@ -696,21 +583,13 @@ export default function AdminSettings() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="notifications" className="m-0 space-y-6">
-            <Card className="rounded-[2.5rem] border-border/60 shadow-none bg-card overflow-hidden">
-              <CardHeader className="p-10 pb-0">
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                    <Bell className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-black tracking-tight">Alert Intelligence</CardTitle>
-                    <CardDescription className="text-sm font-bold uppercase tracking-[0.1em] text-muted-foreground opacity-60">System Notifications & Compliance Triggers</CardDescription>
-                  </div>
-                </div>
+          <TabsContent value="alerts" className="m-0 space-y-6">
+            <Card className="rounded-lg border-slate-200 shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-slate-50 p-6">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-900">Intelligence Triggers</CardTitle>
               </CardHeader>
-              <CardContent className="p-10">
-                <div className="max-w-2xl mx-auto py-4">
+              <CardContent className="p-6">
+                <div className="max-w-2xl">
                   <NotificationSettingsPanel />
                 </div>
               </CardContent>

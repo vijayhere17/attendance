@@ -148,308 +148,194 @@ export default function AdminAttendance() {
    };
 
    return (
-      <Layout>
-         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8 animate-in fade-in duration-700">
+    <Layout>
+      <div className="space-y-8 animate-in fade-in duration-500">
 
-            {/* Header Section */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-border/60">
-               <div className="space-y-1">
-                  <h1 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
-                     <History className="w-8 h-8 text-primary" />
-                     Attendance Logs
-                  </h1>
-                  <p className="text-muted-foreground flex items-center gap-2 font-medium">
-                     <CalendarDays className="w-4 h-4" />
-                     Period: {format(new Date(startDate), 'MMMM dd')} — {format(new Date(endDate), 'MMMM dd, yyyy')}
-                  </p>
-               </div>
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-border/60">
+          <div className='space-y-1'>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+              <History className="w-8 h-8 text-primary" />
+              Attendance Details
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Recorded sessions for {format(new Date(startDate), 'MMM dd')} — {format(new Date(endDate), 'MMM dd, yyyy')}
+            </p>
+          </div>
 
-               <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                  <Button
-                     variant="outline"
-                     className="flex-1 lg:flex-none h-12 rounded-xl border-border bg-card hover:bg-muted/30 font-bold gap-2 shadow-sm"
-                     onClick={() => {
-                        setStartDate(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd'));
-                        setEndDate(format(new Date(), 'yyyy-MM-dd'));
-                        setSearchTerm('');
-                        setStatusFilter('all');
-                     }}
-                  >
-                     Reset Filters
-                  </Button>
-                  <Button
-                     onClick={handleExport}
-                     disabled={exporting || filteredRecords.length === 0}
-                     className="flex-1 lg:flex-none h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-lg shadow-indigo-200 gap-2 transition-all active:scale-95"
-                  >
-                     {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />}
-                     Export .XLSX
-                  </Button>
-               </div>
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 lg:flex-none h-10 px-4 bg-white border-slate-200 text-slate-900 font-bold text-xs uppercase tracking-widest gap-2 shadow-sm hover:bg-slate-50"
+              onClick={() => {
+                setStartDate(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd'));
+                setEndDate(format(new Date(), 'yyyy-MM-dd'));
+                setSearchTerm('');
+                setStatusFilter('all');
+              }}
+            >
+              Reset
+            </Button>
+            <Button
+              onClick={handleExport}
+              disabled={exporting || filteredRecords.length === 0}
+              size="sm"
+              className="flex-1 lg:flex-none h-10 px-4 bg-slate-900 text-white hover:bg-slate-800 rounded-md font-bold shadow-sm gap-2"
+            >
+              {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />}
+              Export .XLSX
+            </Button>
+          </div>
+        </div>
+
+        {/* Filter Toolbar */}
+        <Card className="rounded-lg border-slate-200 shadow-sm bg-slate-50 overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex flex-col lg:flex-row items-center gap-4">
+              <div className="relative flex-1 group w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                <Input
+                  placeholder="Search identity..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-10 bg-white border-slate-200 rounded-md text-sm focus:ring-slate-900"
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                <div className="flex items-center gap-2 bg-white border border-slate-200 p-1 rounded-md shadow-sm">
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="h-8 w-28 border-none shadow-none focus-visible:ring-0 text-[10px] font-bold"
+                  />
+                  <span className="text-slate-300 font-bold text-[10px]">TO</span>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="h-8 w-28 border-none shadow-none focus-visible:ring-0 text-[10px] font-bold"
+                  />
+                </div>
+
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-10 w-[120px] rounded-md bg-white border-slate-200 text-[10px] font-bold uppercase tracking-widest">
+                    <SelectValue placeholder="STATUS" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ALL STATUS</SelectItem>
+                    <SelectItem value="present">PRESENT</SelectItem>
+                    <SelectItem value="late">LATE</SelectItem>
+                    <SelectItem value="early_exit">EARLY EXIT</SelectItem>
+                    <SelectItem value="absent">ABSENT</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={shiftFilter} onValueChange={setShiftFilter}>
+                  <SelectTrigger className="h-10 w-[120px] rounded-md bg-white border-slate-200 text-[10px] font-bold uppercase tracking-widest">
+                    <SelectValue placeholder="SHIFT" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ALL ROLES</SelectItem>
+                    <SelectItem value="employee">FULL-TIME</SelectItem>
+                    <SelectItem value="intern_batch1">BATCH 1</SelectItem>
+                    <SelectItem value="intern_batch2">BATCH 2</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-               <Card className="rounded-2xl border-border/50 shadow-sm bg-card hover:shadow-md transition-shadow">
-                  <CardContent className="p-5">
-                     <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total Logs</span>
-                        <span className="text-2xl font-black text-foreground">{stats.total}</span>
-                     </div>
-                  </CardContent>
-               </Card>
-               <Card className="rounded-2xl border-success/20 shadow-sm bg-success/5 hover:shadow-md transition-shadow">
-                  <CardContent className="p-5">
-                     <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-success/70">On-Time</span>
-                        <span className="text-2xl font-black text-success">{stats.present}</span>
-                     </div>
-                  </CardContent>
-               </Card>
-               <Card className="rounded-2xl border-warning/20 shadow-sm bg-warning/5 hover:shadow-md transition-shadow">
-                  <CardContent className="p-5">
-                     <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-warning/70">Late Comers</span>
-                        <span className="text-2xl font-black text-warning">{stats.late}</span>
-                     </div>
-                  </CardContent>
-               </Card>
-               <Card className="rounded-2xl border-destructive/20 shadow-sm bg-destructive/5 hover:shadow-md transition-shadow">
-                  <CardContent className="p-5">
-                     <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-destructive/70">Casualties</span>
-                        <span className="text-2xl font-black text-destructive">{stats.absent}</span>
-                     </div>
-                  </CardContent>
-               </Card>
-               <Card className="hidden lg:block rounded-2xl border-indigo-200 shadow-sm bg-indigo-50/50 hover:shadow-md transition-shadow">
-                  <CardContent className="p-5">
-                     <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Violations</span>
-                        <span className="text-2xl font-black text-indigo-600">{stats.violations}</span>
-                     </div>
-                  </CardContent>
-               </Card>
-            </div>
-
-            {/* Filter Toolbar */}
-            <Card className="rounded-[2rem] border-border/60 shadow-none bg-muted/20 overflow-hidden">
-               <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row items-center gap-4">
-                     <div className="relative flex-1 group w-full">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                        <Input
-                           placeholder="Search member identity..."
-                           value={searchTerm}
-                           onChange={(e) => setSearchTerm(e.target.value)}
-                           className="pl-12 h-12 bg-card border-border/40 rounded-xl shadow-sm focus-visible:ring-primary/20"
-                        />
-                     </div>
-
-                     <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                        <div className="flex items-center gap-2 bg-card border border-border/40 p-1 rounded-xl shadow-sm">
-                           <Input
-                              type="date"
-                              value={startDate}
-                              onChange={(e) => setStartDate(e.target.value)}
-                              className="h-9 w-32 border-none shadow-none focus-visible:ring-0 text-xs font-bold"
-                           />
-                           <span className="text-muted-foreground font-black text-[10px]">TO</span>
-                           <Input
-                              type="date"
-                              value={endDate}
-                              onChange={(e) => setEndDate(e.target.value)}
-                              className="h-9 w-32 border-none shadow-none focus-visible:ring-0 text-xs font-bold"
-                           />
+        {/* Data Table */}
+        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50/50 hover:bg-slate-50/50">
+                <TableHead className="pl-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Date</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Member</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">In / Out</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Break</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Net</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Status</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-64 text-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-slate-200 mx-auto" />
+                  </TableCell>
+                </TableRow>
+              ) : filteredRecords.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-64 text-center text-slate-500">
+                    No records found for the selected criteria.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredRecords.map((r) => (
+                  <TableRow key={r._id} className="hover:bg-slate-50/30 transition-colors border-b border-slate-50 last:border-0">
+                    <TableCell className="pl-6 py-4">
+                      <p className="text-sm font-bold text-slate-900">{format(new Date(r.date), 'MMM dd')}</p>
+                      <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{format(new Date(r.date), 'EEE')}</p>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 shrink-0">
+                          {getInitials(r.user?.full_name || '')}
                         </div>
-
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                           <SelectTrigger className="h-12 w-[140px] rounded-xl bg-card border-border/40 shadow-sm font-bold text-xs uppercase tracking-wider">
-                              <SelectValue placeholder="STATUS" />
-                           </SelectTrigger>
-                           <SelectContent className="rounded-xl">
-                              <SelectItem value="all">ALL STATUS</SelectItem>
-                              <SelectItem value="present">PRESENT</SelectItem>
-                              <SelectItem value="late">LATE</SelectItem>
-                              <SelectItem value="early_exit">EARLY EXIT</SelectItem>
-                              <SelectItem value="absent">ABSENT</SelectItem>
-                           </SelectContent>
-                        </Select>
-
-                        <Select value={shiftFilter} onValueChange={setShiftFilter}>
-                           <SelectTrigger className="h-12 w-[140px] rounded-xl bg-card border-border/40 shadow-sm font-bold text-xs uppercase tracking-wider">
-                              <SelectValue placeholder="ROLE/SHIFT" />
-                           </SelectTrigger>
-                           <SelectContent className="rounded-xl">
-                              <SelectItem value="all">ALL ROLES</SelectItem>
-                              <SelectItem value="employee">FULL-TIME</SelectItem>
-                              <SelectItem value="intern_batch1">BATCH 1 (AM)</SelectItem>
-                              <SelectItem value="intern_batch2">BATCH 2 (PM)</SelectItem>
-                           </SelectContent>
-                        </Select>
-                     </div>
-                  </div>
-               </CardContent>
-            </Card>
-
-            {/* Data Table */}
-            <Card className="rounded-[2.5rem] border-border/60 shadow-2xl shadow-slate-200/50 overflow-hidden bg-white">
-               <Table>
-                  <TableHeader>
-                     <TableRow className="h-16 hover:bg-transparent bg-muted/30 border-b-2 border-border/40">
-                        <TableHead className="pl-8 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Log Timeline</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Team Member</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Check In</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Check Out</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Work Profile</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Breaks</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Net Hours</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Status</TableHead>
-                        <TableHead className="w-[80px]"></TableHead>
-                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                     {loading ? (
-                        <TableRow>
-                           <TableCell colSpan={7} className="h-96">
-                              <div className="flex flex-col items-center justify-center space-y-4">
-                                 <div className="w-12 h-12 rounded-full border-4 border-indigo-600/10 border-t-indigo-600 animate-spin" />
-                                 <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Hydrating Logs...</p>
-                              </div>
-                           </TableCell>
-                        </TableRow>
-                     ) : filteredRecords.length === 0 ? (
-                        <TableRow>
-                           <TableCell colSpan={7} className="h-96">
-                              <div className="flex flex-col items-center justify-center text-center p-8">
-                                 <div className="w-20 h-20 rounded-full bg-muted/30 flex items-center justify-center mb-6">
-                                    <Search className="w-10 h-10 text-muted-foreground/40" />
-                                 </div>
-                                 <h3 className="text-xl font-black text-slate-800">No logs found</h3>
-                                 <p className="text-sm text-muted-foreground max-w-xs mt-2">Adjust your period or filters to discover recorded entry data.</p>
-                              </div>
-                           </TableCell>
-                        </TableRow>
-                     ) : (
-                        filteredRecords.map((r) => (
-                           <TableRow key={r._id} className="h-24 hover:bg-indigo-50/20 group transition-colors border-b border-border/40">
-                              <TableCell className="pl-8">
-                                 <div className="space-y-1">
-                                    <p className="font-black text-slate-800 tracking-tight">{format(new Date(r.date), 'MMM dd, yyyy')}</p>
-                                    <div className="flex items-center gap-1.5 opacity-60">
-                                       <Clock className="w-3 h-3" />
-                                       <p className="text-[10px] font-bold uppercase tracking-wider">{format(new Date(r.date), 'EEEE')}</p>
-                                    </div>
-                                 </div>
-                              </TableCell>
-                              <TableCell>
-                                 <div className="flex items-center gap-4">
-                                    <Avatar className="w-11 h-11 border-2 border-white shadow-md rounded-xl group-hover:scale-110 transition-transform bg-primary/5">
-                                       <AvatarFallback className="text-sm font-black text-primary">
-                                          {getInitials(r.user?.full_name || '')}
-                                       </AvatarFallback>
-                                    </Avatar>
-                                    <div className="min-w-0">
-                                       <p className="font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors uppercase tracking-tight text-sm">{r.user?.full_name}</p>
-                                       <p className="text-xs font-medium text-muted-foreground truncate">{r.user?.email}</p>
-                                    </div>
-                                 </div>
-                              </TableCell>
-                              <TableCell>
-                                 <div className="flex flex-col gap-0.5">
-                                    <p className="text-sm font-black text-slate-800">
-                                       {r.check_in ? format(new Date(r.check_in), 'hh:mm a') : '—'}
-                                    </p>
-                                    <p className="text-[9px] font-black uppercase text-muted-foreground opacity-60 italic">Entry</p>
-                                 </div>
-                              </TableCell>
-                              <TableCell>
-                                 <div className="flex flex-col gap-0.5">
-                                    <p className="text-sm font-black text-slate-800">
-                                       {r.check_out ? format(new Date(r.check_out), 'hh:mm a') : (r.check_in ? 'Active' : '—')}
-                                    </p>
-                                    <p className="text-[9px] font-black uppercase text-muted-foreground opacity-60 italic">Exit</p>
-                                 </div>
-                              </TableCell>
-                              <TableCell>
-                                 <div className="flex flex-col gap-1.5">
-                                    <div className="flex items-center gap-2">
-                                       <Badge variant="outline" className="font-black uppercase text-[9px] px-2 py-0 border-none bg-muted shadow-sm">{r.user?.role}</Badge>
-                                       {r.user?.batch && <span className="text-[10px] font-black text-muted-foreground opacity-70">[{r.user.batch.replace('batch', 'B')}]</span>}
-                                    </div>
-                                    {r.work_mode === 'wfh' && (
-                                       <div className="flex items-center gap-1 text-indigo-500">
-                                          <MapPin className="w-3 h-3" />
-                                          <span className="text-[10px] font-black uppercase tracking-widest">REMOTE</span>
-                                       </div>
-                                    )}
-                                 </div>
-                              </TableCell>
-                              <TableCell>
-                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center border border-orange-100 shadow-sm">
-                                       <Pause className="w-3.5 h-3.5 text-orange-500" />
-                                    </div>
-                                    <div className="space-y-0.5">
-                                       <p className="text-sm font-black text-slate-800">{r.break_minutes || 0}<span className="text-[10px] opacity-40 ml-0.5">m</span></p>
-                                       <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground opacity-60">Break</p>
-                                    </div>
-                                 </div>
-                              </TableCell>
-                              <TableCell>
-                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center border border-indigo-100 shadow-sm">
-                                       <TrendingUp className="w-3.5 h-3.5 text-indigo-600" />
-                                    </div>
-                                    <div className="space-y-0.5">
-                                       <p className="text-sm font-black text-slate-800">
-                                          {Math.floor((r.worked_minutes || 0) / 60)}h {(r.worked_minutes || 0) % 60}m
-                                       </p>
-                                       <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground opacity-60">Production</p>
-                                    </div>
-                                 </div>
-                              </TableCell>
-                              <TableCell className="text-center">
-                                 <div className="inline-flex flex-col items-center gap-1.5">
-                                    <StatusBadge status={r.status} className="shadow-sm border-none font-black text-[10px] uppercase px-4" />
-                                    {r.is_policy_violation && (
-                                       <div className="flex items-center gap-1 text-destructive animate-pulse">
-                                          <AlertCircle className="w-3 h-3" />
-                                          <span className="text-[8px] font-black uppercase tracking-widest">Alert</span>
-                                       </div>
-                                    )}
-                                 </div>
-                              </TableCell>
-                              <TableCell className="pr-8">
-                                 <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                       <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full group-hover:bg-white group-hover:shadow-md transition-all">
-                                          <MoreVertical className="w-5 h-5 opacity-40 group-hover:opacity-100" />
-                                       </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl border-border">
-                                       <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Log Intelligence</DropdownMenuLabel>
-                                       <DropdownMenuSeparator />
-                                       <DropdownMenuItem className="rounded-xl h-11 px-3 gap-3 font-bold cursor-pointer">
-                                          <User className="w-4 h-4 text-indigo-500" /> View Employee
-                                       </DropdownMenuItem>
-                                       <DropdownMenuItem className="rounded-xl h-11 px-3 gap-3 font-bold cursor-pointer">
-                                          <Calendar className="w-4 h-4 text-indigo-500" /> Day Summary
-                                       </DropdownMenuItem>
-                                       <DropdownMenuSeparator />
-                                       <DropdownMenuItem className="rounded-xl h-11 px-3 gap-3 font-bold cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/5">
-                                          <AlertCircle className="w-4 h-4" /> Flag Incident
-                                       </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                 </DropdownMenu>
-                              </TableCell>
-                           </TableRow>
-                        ))
-                     )}
-                  </TableBody>
-               </Table>
-            </Card>
-         </div>
-      </Layout>
-   );
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-slate-900 truncate">{r.user?.full_name}</p>
+                          <p className="text-xs text-slate-500 truncate">{r.user?.email}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col text-xs font-mono font-bold text-slate-700">
+                        <span>{r.check_in ? format(new Date(r.check_in), 'hh:mm a') : '--:--'}</span>
+                        <span className="text-slate-400 font-normal">{r.check_out ? format(new Date(r.check_out), 'hh:mm a') : (r.check_in ? 'Active' : '--:--')}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                       <span className="text-xs font-bold text-slate-700">{r.break_minutes || 0}m</span>
+                    </TableCell>
+                    <TableCell>
+                       <span className="text-xs font-bold text-slate-900">
+                          {Math.floor((r.worked_minutes || 0) / 60)}h {(r.worked_minutes || 0) % 60}m
+                       </span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                       <div className="inline-flex flex-col items-center gap-1">
+                          <StatusBadge status={r.status} className="text-[9px] font-bold uppercase tracking-widest px-2 h-5" />
+                          {r.is_policy_violation && (
+                             <AlertCircle className="w-3 h-3 text-rose-500" />
+                          )}
+                       </div>
+                    </TableCell>
+                    <TableCell className="pr-6">
+                       <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400">
+                                <MoreVertical className="w-4 h-4" />
+                             </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                             <DropdownMenuItem className="text-xs font-bold uppercase tracking-widest">Details</DropdownMenuItem>
+                             <DropdownMenuItem className="text-xs font-bold uppercase tracking-widest text-rose-600">Flag</DropdownMenuItem>
+                          </DropdownMenuContent>
+                       </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </Layout>
+  );
 }

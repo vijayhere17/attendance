@@ -105,28 +105,22 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8 animate-in fade-in duration-700">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-border/60">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-              <TrendingUp className="w-8 h-8 text-primary" />
-              Admin Overview
-            </h1>
-            <p className="text-muted-foreground flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Today is {format(new Date(), 'EEEE, MMMM d, yyyy')}
+      <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-slate-200">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">System Overview</h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Live metrics for {format(new Date(), 'MMMM d, yyyy')}
             </p>
           </div>
           
-          <Card className="bg-primary/5 border-primary/10 shadow-none px-6 py-3 flex items-center gap-6">
+          <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2 rounded-md shadow-sm">
              <div className="text-right">
-                <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-0.5">Average Attendance</p>
-                <p className="text-2xl font-black text-primary font-mono">{attendanceRate}%</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Attendance Rate</p>
+                <p className="text-xl font-bold text-slate-900">{attendanceRate}%</p>
              </div>
-             <Badge className={`h-8 px-3 rounded-lg font-bold shadow-sm ${attendanceRate > 80 ? 'bg-success text-success-foreground' : 'bg-warning text-warning-foreground'}`}>
-               {attendanceRate > 80 ? 'Optimal' : 'Needs Review'}
-             </Badge>
-          </Card>
+             <div className={`h-8 w-1 rounded-full ${attendanceRate > 80 ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -134,102 +128,83 @@ export default function AdminDashboard() {
             title="Total Workforce"
             value={stats.total}
             icon={<Users className="w-5 h-5" />}
-            variant="primary"
             description="Active accounts"
           />
           <StatCard
             title="Present"
             value={stats.present}
             icon={<UserCheck className="w-5 h-5" />}
-            variant="success"
-            description="Successfully checked in"
+            description="Checked in today"
           />
           <StatCard
-            title="Late Arrivals"
+            title="Late"
             value={stats.late}
             icon={<Clock className="w-5 h-5" />}
-            variant="warning"
-            description="After shift threshold"
+            description="Past shift window"
           />
           <StatCard
             title="Absent"
             value={stats.absent}
             icon={<UserX className="w-5 h-5" />}
-            variant="destructive"
             description="No logs recorded"
           />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <Card className="lg:col-span-8 bg-card border-border shadow-sm rounded-2xl overflow-hidden flex flex-col hover:border-primary/20 transition-colors">
-            <CardHeader className="flex flex-row items-center justify-between pb-6">
+          <Card className="lg:col-span-8 bg-white border-slate-200 shadow-sm rounded-lg overflow-hidden flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 py-5 px-6">
               <div>
-                <CardTitle className="text-xl font-bold tracking-tight">Weekly Engagement</CardTitle>
-                <CardDescription className="text-sm">Attendance metrics over the last 7 days</CardDescription>
+                <CardTitle className="text-base font-bold text-slate-900">Weekly Engagement</CardTitle>
+                <CardDescription className="text-xs">Arrival trends over 7 days</CardDescription>
               </div>
-              <Activity className="w-5 h-5 text-muted-foreground opacity-50" />
+              <Activity className="w-4 h-4 text-slate-300" />
             </CardHeader>
-            <CardContent className="flex-1 pb-8">
-              <div className="h-[380px] w-full">
+            <CardContent className="flex-1 p-6">
+              <div className="h-[340px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorLate" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--warning))" stopOpacity={0.1} />
-                        <stop offset="95%" stopColor="hsl(var(--warning))" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.4} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                     <XAxis
                       dataKey="day"
-                      stroke="hsl(var(--muted-foreground))"
-                      fontSize={12}
+                      stroke="#94a3b8"
+                      fontSize={11}
                       tickLine={false}
                       axisLine={false}
-                      dy={15}
-                      fontFamily="Inter"
+                      dy={10}
                     />
                     <YAxis
-                      stroke="hsl(var(--muted-foreground))"
-                      fontSize={12}
+                      stroke="#94a3b8"
+                      fontSize={11}
                       tickLine={false}
                       axisLine={false}
                       dx={-10}
-                      fontFamily="Inter"
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+                        backgroundColor: '#fff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
                       }}
-                      itemStyle={{ fontSize: '13px', fontWeight: 'bold', padding: '2px 0' }}
-                      cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, strokeDasharray: '4 4', opacity: 0.2 }}
                     />
                     <Area
                       type="monotone"
                       dataKey="present"
                       name="Present"
-                      stroke="hsl(var(--primary))"
-                      fillOpacity={1}
-                      fill="url(#colorPresent)"
-                      strokeWidth={3}
-                      animationDuration={1500}
+                      stroke="#0f172a"
+                      fill="#f8fafc"
+                      strokeWidth={2}
+                      animationDuration={1000}
                     />
                     <Area
                       type="monotone"
                       dataKey="late"
                       name="Late"
-                      stroke="hsl(var(--warning))"
-                      fillOpacity={1}
-                      fill="url(#colorLate)"
-                      strokeWidth={3}
-                      animationDuration={1800}
+                      stroke="#64748b"
+                      fill="#f1f5f9"
+                      strokeWidth={2}
+                      animationDuration={1200}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -237,92 +212,70 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <div className="lg:col-span-4 space-y-8">
-            <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden flex flex-col hover:border-primary/20 transition-colors">
-              <CardHeader className="flex flex-row items-center justify-between py-5 border-b border-border/40 bg-muted/5">
-                <div>
-                  <CardTitle className="text-lg font-bold">Activity Feed</CardTitle>
-                  <CardDescription className="text-xs">Real-time attendance logs</CardDescription>
-                </div>
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="bg-white border-slate-200 shadow-sm rounded-lg overflow-hidden flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 py-4 px-5">
+                <CardTitle className="text-sm font-bold text-slate-900 uppercase tracking-wider">Activity Feed</CardTitle>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-success uppercase tracking-widest">Live</span>
-                  <div className="w-2 h-2 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Live</span>
                 </div>
               </CardHeader>
-              <CardContent className="p-0 max-h-[420px] overflow-y-auto">
+              <CardContent className="p-0 max-h-[380px] overflow-y-auto">
                 {recentRecords.length === 0 ? (
-                  <div className="text-center py-16 text-muted-foreground text-sm flex flex-col items-center">
-                    <Activity className="w-10 h-10 opacity-20 mb-3" />
-                    No synchronization logs found
+                  <div className="text-center py-12 text-slate-400 text-sm">
+                    No recent activity
                   </div>
                 ) : (
-                  <div className="divide-y divide-border/40">
+                  <div className="divide-y divide-slate-100">
                     {recentRecords.map((r) => (
-                      <div key={r.id} className="flex items-center gap-4 p-5 hover:bg-muted/30 transition-all cursor-default group">
-                        <Avatar className="w-10 h-10 border border-border shadow-sm group-hover:border-primary/30 transition-all">
-                          <AvatarFallback className="text-sm bg-primary/5 text-primary font-bold">
-                            {r.user?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) || '??'}
-                          </AvatarFallback>
-                        </Avatar>
+                      <div key={r.id} className="flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors">
+                        <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                          {r.user?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) || '??'}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold truncate text-foreground group-hover:text-primary transition-colors">{r.user?.full_name}</p>
-                          <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5 mt-0.5">
-                            <Clock className="w-3.5 h-3.5 opacity-60" />
+                          <p className="text-sm font-bold text-slate-900 truncate">{r.user?.full_name}</p>
+                          <p className="text-[10px] text-slate-400 font-medium">
                             {r.check_in ? format(new Date(r.check_in), 'hh:mm a') : 'Pending'}
                           </p>
                         </div>
-                        <StatusBadge status={r.status} size="sm" className="shrink-0 font-bold" />
+                        <StatusBadge status={r.status} size="sm" className="h-5 px-2 text-[10px] font-bold" />
                       </div>
                     ))}
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="p-4 border-t border-border/40 bg-muted/5">
-                <Button variant="ghost" size="sm" className="w-full text-xs font-bold h-10 group" asChild>
-                  <Link to="/admin/attendance" className="flex items-center justify-center gap-2">
-                    Access Detailed Logs <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              <CardFooter className="p-3 border-t border-slate-50 bg-slate-50/50">
+                <Button variant="ghost" size="sm" className="w-full text-xs font-bold h-8 text-slate-600 hover:text-slate-900" asChild>
+                  <Link to="/admin/attendance">
+                    View All Logs
                   </Link>
                 </Button>
               </CardFooter>
             </Card>
 
-            <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden hover:border-primary/20 transition-colors">
-              <CardHeader className="py-5 border-b border-border/40 bg-muted/5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg font-bold">Top Performers</CardTitle>
-                    <CardDescription className="text-xs">Based on streak and punctuality</CardDescription>
-                  </div>
-                  <Award className="w-5 h-5 text-primary" />
-                </div>
+            <Card className="bg-white border-slate-200 shadow-sm rounded-lg overflow-hidden">
+              <CardHeader className="border-b border-slate-50 py-4 px-5">
+                <CardTitle className="text-sm font-bold text-slate-900 uppercase tracking-wider">Performance</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 {topPerformers.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground text-sm flex flex-col items-center">
-                    <Users className="w-10 h-10 opacity-20 mb-3" />
-                    No performance data
+                  <div className="text-center py-10 text-slate-400 text-sm">
+                    No data available
                   </div>
                 ) : (
-                  <div className="divide-y divide-border/40">
+                  <div className="divide-y divide-slate-100">
                     {topPerformers.map((user, i) => (
-                      <div key={user.id} className="flex items-center gap-4 p-5 hover:bg-muted/30 transition-all group">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black shrink-0 shadow-sm
-                          ${i === 0 ? 'bg-amber-100 text-amber-700 border border-amber-300' : 
-                            i === 1 ? 'bg-slate-100 text-slate-700 border border-slate-300' : 
-                            i === 2 ? 'bg-orange-100 text-orange-800 border border-orange-300' : 
-                            'bg-muted text-muted-foreground border border-border'}`}>
-                          {i + 1}
-                        </div>
+                      <div key={user.id} className="flex items-center gap-3 p-4">
+                        <span className="text-xs font-bold text-slate-400 w-4">0{i + 1}</span>
                         <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-center text-sm mb-2.5">
-                            <span className="font-bold truncate pr-2 text-foreground group-hover:text-primary transition-colors">{user.name}</span>
-                            <Badge variant="outline" className="text-[10px] font-black border-primary/20 text-primary bg-primary/5 uppercase tracking-wider h-6">
-                              {user.streak}d Streak
-                            </Badge>
+                          <div className="flex justify-between items-center text-xs mb-1.5">
+                            <span className="font-bold text-slate-900 truncate">{user.name}</span>
+                            <span className="text-slate-500 font-medium">{user.streak}d streak</span>
                           </div>
-                          <div className="h-2 bg-muted rounded-full overflow-hidden w-full border border-border/20">
+                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-1000 ease-out ${i === 0 ? 'bg-primary' : 'bg-primary/70'}`}
+                              className="h-full bg-slate-900 rounded-full transition-all duration-700"
                               style={{ width: `${user.score}%` }}
                             />
                           </div>
