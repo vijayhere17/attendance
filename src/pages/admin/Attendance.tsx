@@ -256,9 +256,12 @@ export default function AdminAttendance() {
               <TableRow className="bg-slate-50/50 hover:bg-slate-50/50">
                 <TableHead className="pl-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Date</TableHead>
                 <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Member</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">In / Out</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">In</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Out</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Work Mode</TableHead>
+                {/* <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Worked</TableHead> */}
                 <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Break</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Net</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Working hours</TableHead>
                 <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Status</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
@@ -297,8 +300,15 @@ export default function AdminAttendance() {
                     <TableCell>
                       <div className="flex flex-col text-xs font-mono font-bold text-slate-700">
                         <span>{r.check_in ? format(new Date(r.check_in), 'hh:mm a') : '--:--'}</span>
-                        <span className="text-slate-400 font-normal">{r.check_out ? format(new Date(r.check_out), 'hh:mm a') : (r.check_in ? 'Active' : '--:--')}</span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                         <span className="text-xs font-mono font-bold text-slate-700">{r.check_out ? format(new Date(r.check_out), 'hh:mm a') : (r.check_in ? 'Active' : '--:--')}</span>
+                    </TableCell>
+                    <TableCell>
+                        <Badge className="text-[10px] font-bold uppercase tracking-widest px-2 h-5">
+                           {r.work_mode === 'remote' ? 'REMOTE' : r.work_mode === 'office' ? 'OFFICE' : 'HYBRID'}
+                        </Badge>
                     </TableCell>
                     <TableCell>
                        <span className="text-xs font-bold text-slate-700">{r.break_minutes || 0}m</span>

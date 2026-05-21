@@ -428,6 +428,14 @@ export default function CheckInOut() {
                       <Pause className="w-3.5 h-3.5 mr-2" />
                       {todayRecord?.is_on_break ? 'Resume Work' : 'Take a Break'}
                     </Button>
+
+                    {/* // show how break time is used up if on break add a aclock for it also a real working clock to be shown not emoji like this :- Break Time Used 4 / 45 mins*/}
+                    {todayRecord?.is_on_break && (
+                      <div className="mt-2 flex items-center justify-center gap-2 text-center text-xs text-slate-500 italic font-medium ">
+                        <Timer className="w-3.5 h-3.5" />
+                        Break time used: {Math.floor(getBreakTime() / 60)}m {getBreakTime() % 60}s
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
