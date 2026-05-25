@@ -13,7 +13,7 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
   const allowedOrigin = origin && allowedOrigins.some(allowed => origin.startsWith(allowed.replace(/\/$/, '')))
     ? origin
     : allowedOrigins[0]
-  
+
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -43,7 +43,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   const R = 6371000 // Earth's radius in meters
   const dLat = (lat2 - lat1) * Math.PI / 180
   const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = 
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2)
@@ -61,12 +61,12 @@ function determineStatus(
   if (!isWithinRadius) {
     return 'absent' // Out of geo-fence
   }
-  
+
   const today = new Date()
   const [hours, minutes] = shiftStart.split(':').map(Number)
   const shiftStartTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes)
   const graceEndTime = new Date(shiftStartTime.getTime() + gracePeriodMins * 60 * 1000)
-  
+
   if (checkInTime <= graceEndTime) {
     return 'present'
   }
@@ -84,9 +84,9 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
-        status: 401, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
@@ -98,11 +98,11 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace('Bearer ', '')
     const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token)
-    
+
     if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
-        status: 401, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
@@ -111,40 +111,40 @@ Deno.serve(async (req) => {
 
     // Validate action
     if (!action || !['check_in', 'check_out'].includes(action)) {
-      return new Response(JSON.stringify({ error: 'Invalid action. Must be check_in or check_out' }), { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: 'Invalid action. Must be check_in or check_out' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     // Validate latitude and longitude are numbers
     if (typeof latitude !== 'number' || typeof longitude !== 'number') {
-      return new Response(JSON.stringify({ error: 'Valid latitude and longitude required' }), { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: 'Valid latitude and longitude required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     // Validate coordinate ranges
     if (!isValidLatitude(latitude)) {
-      return new Response(JSON.stringify({ error: 'Invalid latitude. Must be between -90 and 90' }), { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: 'Invalid latitude. Must be between -90 and 90' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     if (!isValidLongitude(longitude)) {
-      return new Response(JSON.stringify({ error: 'Invalid longitude. Must be between -180 and 180' }), { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: 'Invalid longitude. Must be between -180 and 180' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     // Validate office_id format if provided
     if (office_id && !isValidUUID(office_id)) {
-      return new Response(JSON.stringify({ error: 'Invalid office_id format' }), { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: 'Invalid office_id format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
@@ -163,9 +163,9 @@ Deno.serve(async (req) => {
 
     if (profileError || !profile) {
       console.error('Profile fetch failed for user:', userId)
-      return new Response(JSON.stringify({ error: 'User profile not found' }), { 
-        status: 404, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: 'User profile not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
@@ -178,9 +178,9 @@ Deno.serve(async (req) => {
 
     if (officeError || !office) {
       console.error('Office configuration not found')
-      return new Response(JSON.stringify({ error: 'Office configuration not found' }), { 
-        status: 404, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: 'Office configuration not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
@@ -196,13 +196,13 @@ Deno.serve(async (req) => {
 
     if (action === 'check_in') {
       if (!isWithinRadius) {
-        return new Response(JSON.stringify({ 
+        return new Response(JSON.stringify({
           error: 'You are outside the office geo-fence',
           distance: Math.round(distance),
           required_radius: office.radius_meters
-        }), { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
@@ -215,9 +215,9 @@ Deno.serve(async (req) => {
         .single()
 
       if (existing?.check_in) {
-        return new Response(JSON.stringify({ error: 'Already checked in today' }), { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        return new Response(JSON.stringify({ error: 'Already checked in today' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
@@ -240,20 +240,20 @@ Deno.serve(async (req) => {
 
       if (insertError) {
         console.error('Failed to record check-in')
-        return new Response(JSON.stringify({ error: 'Failed to record check-in' }), { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        return new Response(JSON.stringify({ error: 'Failed to record check-in' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
-      return new Response(JSON.stringify({ 
-        success: true, 
+      return new Response(JSON.stringify({
+        success: true,
         message: `Checked in successfully. Status: ${status}`,
         record,
         distance: Math.round(distance)
-      }), { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
@@ -267,16 +267,16 @@ Deno.serve(async (req) => {
         .single()
 
       if (existingError || !existing) {
-        return new Response(JSON.stringify({ error: 'No check-in record found for today' }), { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        return new Response(JSON.stringify({ error: 'No check-in record found for today' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
       if (existing.check_out) {
-        return new Response(JSON.stringify({ error: 'Already checked out today' }), { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        return new Response(JSON.stringify({ error: 'Already checked out today' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
@@ -285,7 +285,7 @@ Deno.serve(async (req) => {
       const currentTime = new Date()
       const [endHours, endMinutes] = profile.shift_end.split(':').map(Number)
       const shiftEndTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), endHours, endMinutes)
-      
+
       if (currentTime < shiftEndTime && existing.status !== 'late') {
         newStatus = 'early_exit'
       }
@@ -305,33 +305,33 @@ Deno.serve(async (req) => {
 
       if (updateError) {
         console.error('Failed to record check-out')
-        return new Response(JSON.stringify({ error: 'Failed to record check-out' }), { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        return new Response(JSON.stringify({ error: 'Failed to record check-out' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
-      return new Response(JSON.stringify({ 
-        success: true, 
+      return new Response(JSON.stringify({
+        success: true,
         message: `Checked out successfully. Status: ${newStatus}`,
         record,
         distance: Math.round(distance)
-      }), { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    return new Response(JSON.stringify({ error: 'Invalid action' }), { 
-      status: 400, 
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    return new Response(JSON.stringify({ error: 'Invalid action' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
   } catch (error) {
     console.error('Attendance processing error')
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { 
-      status: 500, 
-      headers: { ...getCorsHeaders(null), 'Content-Type': 'application/json' } 
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { ...getCorsHeaders(null), 'Content-Type': 'application/json' }
     })
   }
 })

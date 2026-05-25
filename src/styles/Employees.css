@@ -57,14 +57,16 @@
 }
 
 .employee-card {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    border-color: hsla(var(--border), 0.5);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 82, 204, 0.12);
+    border: 1.5px solid hsl(var(--secondary));
+    background: linear-gradient(135deg, rgba(0, 82, 204, 0.03), rgba(34, 197, 94, 0.03));
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 
 .employee-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 82, 204, 0.2);
+    border-color: hsl(var(--primary));
 }
 
 .card-dropdown {
@@ -76,7 +78,7 @@
 .employee-avatar-large {
     width: 4rem;
     height: 4rem;
-    background: linear-gradient(to bottom right, var(--primary), #4f46e5);
+    background: linear-gradient(to bottom right, hsl(var(--primary)), hsl(var(--secondary)));
     color: white;
     font-size: 1.25rem;
     font-weight: 700;

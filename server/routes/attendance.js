@@ -32,10 +32,10 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 function parseTimeToday(timeStr) {
-    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const now = new Date(new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }));
 
     // Convert to IST manually
-    const istNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const istNow = new Date(now.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }));
 
     const [hours, minutes] = timeStr.split(':').map(Number);
 
@@ -143,7 +143,7 @@ router.post('/check-in', protect, async (req, res) => {
             }
         }
 
-        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+        const now = new Date(new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }));
         const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const existing = await Attendance.findOne({ user: userId, date: today });
 

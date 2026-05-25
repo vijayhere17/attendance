@@ -11,6 +11,10 @@ const attendanceSchema = new mongoose.Schema({
         required: true,
         ref: 'Office',
     },
+    name : {
+        type: String,
+        required: true,
+    },
     date: {
         type: String,
         required: true,

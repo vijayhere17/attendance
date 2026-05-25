@@ -9,11 +9,9 @@
     margin: 0 auto;
     padding: 2rem;
     border-radius: 1rem;
-    background-color: hsla(var(--muted), 0.3);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    border: 1px dashed var(--border);
-    border-color: hsla(var(--border), 0.5);
-    border-width: 2px;
+    background: linear-gradient(135deg, rgba(0, 82, 204, 0.03), rgba(34, 197, 94, 0.03));
+    box-shadow: 0 4px 12px rgba(0, 82, 204, 0.1);
+    border: 2px solid hsl(var(--secondary));
 }
 
 .settings-header {
@@ -37,11 +35,9 @@
     gap: 1rem;
     margin-bottom: 1.5rem;
     border-radius: 1rem;
-    background-color: hsla(var(--muted), 0.3);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    border: 1px dashed var(--border);
-    border-color: hsla(var(--border), 0.5);
-    border-width: 2px;
+    background: linear-gradient(135deg, rgba(0, 82, 204, 0.03), rgba(34, 197, 94, 0.03));
+    box-shadow: 0 4px 12px rgba(0, 82, 204, 0.1);
+    border: 2px solid hsl(var(--secondary));
 }
 
 @media (min-width: 1024px) {
@@ -51,14 +47,11 @@
 }
 
 .settings-card {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    border-color: hsla(var(--border), 0.5);
+    box-shadow: 0 4px 12px rgba(0, 82, 204, 0.1);
+    border-color: hsl(var(--secondary));
     border-radius: 1rem;
-    background-color: hsla(var(--muted), 0.3);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    border: 1px dashed var(--border);
-    border-color: hsla(var(--border), 0.5);
-    border-width: 2px;
+    background: linear-gradient(135deg, rgba(0, 82, 204, 0.03), rgba(34, 197, 94, 0.03));
+    border: 2px solid hsl(var(--secondary));
 }
 
 .settings-grid {
@@ -83,18 +76,18 @@
     padding: 1.5rem;
     background-color: hsla(var(--muted), 0.3);
     border-radius: 0.75rem;
-    border: 1px dashed var(--border);
+    border: 1p linear-gradient(135deg, rgba(0, 82, 204, 0.05), rgba(34, 197, 94, 0.05));
+    border-radius: 0.75rem;
+    border: 2px solid hsl(var(--secondary));
     text-align: center;
-}
-
-.location-icon-wrapper {
     width: 5rem;
     height: 5rem;
     border-radius: 9999px;
-    background-color: hsla(var(--primary), 0.1);
+    background: linear-gradient(135deg, hsl(var(--primary))/15, hsl(var(--secondary))/15);
     display: flex;
     align-items: center;
     justify-content: center;
+    border: 2px solid hsl(var(--secondary));
 }
 
 .notification-panel {

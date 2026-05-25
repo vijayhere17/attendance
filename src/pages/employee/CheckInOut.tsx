@@ -506,7 +506,7 @@ export default function CheckInOut() {
               </div>
               <div className="absolute top-0 right-0 p-4 opacity-10">
                  <Award className="w-20 h-20" />
-              </div>
+              </div> 
             </Card>
             
             <Card className="bg-white border-slate-200 shadow-sm rounded-md overflow-hidden">

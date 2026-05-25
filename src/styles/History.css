@@ -10,10 +10,12 @@
 
 .record-row {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 3px solid transparent;
 }
 
 .record-row:hover {
-  @apply bg-muted/30;
+  @apply bg-gradient-to-r from-primary/5 to-secondary/5;
+  border-left-color: hsl(var(--primary));
 }
 
 .glass {

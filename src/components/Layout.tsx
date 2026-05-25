@@ -109,7 +109,7 @@ export function Layout({ children }: LayoutProps) {
                 {user?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{user?.full_name || 'User'}</p>
+                <p className="text-sm font-semibold text-black truncate">{user?.full_name || 'User'}</p>
                 <p className="text-[11px] text-sidebar-foreground/40 font-medium uppercase tracking-wider">{isAdmin ? 'Administrator' : 'Team Member'}</p>
               </div>
             </div>

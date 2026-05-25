@@ -8,7 +8,7 @@
 }
 
 .profile-banner {
-    @apply h-48 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 relative;
+    @apply h-48 bg-gradient-to-r from-primary/30 via-secondary/30 to-primary/30 relative;
 }
 
 .profile-avatar-wrapper {
@@ -48,7 +48,9 @@
 }
 
 .stat-item {
-    @apply p-8 rounded-[2rem] border-white/5 text-center transition-all hover:scale-105 active:scale-95 cursor-pointer;
+    @apply p-8 rounded-[2rem] border-secondary/30 text-center transition-all hover:scale-105 active:scale-95 cursor-pointer;
+    background: linear-gradient(135deg, rgba(0, 82, 204, 0.05), rgba(34, 197, 94, 0.05));
+    border-width: 2px;
 }
 
 .stat-value {

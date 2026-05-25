@@ -3,8 +3,8 @@
 .auth-page-wrapper {
   @apply min-h-screen flex items-center justify-center bg-background transition-colors duration-500;
   background-image: 
-    radial-gradient(circle at 10% 10%, hsl(var(--primary) / 0.1) 0%, transparent 40%),
-    radial-gradient(circle at 90% 90%, hsl(var(--accent) / 0.1) 0%, transparent 40%);
+    radial-gradient(circle at 10% 10%, hsl(var(--primary) / 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, hsl(var(--secondary) / 0.15) 0%, transparent 40%);
 }
 
 .auth-container {
@@ -35,7 +35,7 @@
 }
 
 .feature-item {
-  @apply p-6 rounded-3xl space-y-3 bg-muted/30 border border-border;
+  @apply p-6 rounded-3xl space-y-3 bg-gradient-to-br from-primary/5 to-secondary/5 border border-secondary/30;
 }
 
 .feature-item p:first-of-type {
@@ -44,7 +44,8 @@
 
 /* Form Styles */
 .auth-form-card {
-  @apply border-border rounded-[3rem] p-6 lg:p-10 bg-card shadow-2xl;
+  @apply border-secondary rounded-[3rem] p-6 lg:p-10 bg-card shadow-2xl;
+  border-width: 2px;
 }
 
 .auth-form-header {
